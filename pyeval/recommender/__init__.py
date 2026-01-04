@@ -614,6 +614,393 @@ def novelty(recommendations: List[List[Any]],
 
 
 # =============================================================================
+# Advanced Recommender Metrics
+# =============================================================================
+
+def serendipity(recommended: List[Any], relevant: List[Any],
+                expected: List[Any]) -> float:
+    """
+    Calculate Serendipity (unexpected but relevant recommendations).
+    
+    Serendipity = (relevant items NOT in expected) / total recommendations
+    
+    Args:
+        recommended: List of recommended items
+        relevant: List of relevant items (ground truth)
+        expected: List of items user would expect (e.g., most popular)
+        
+    Returns:
+        Serendipity score (0 to 1)
+    """
+    if not recommended:
+        return 0.0
+    
+    relevant_set = set(relevant)
+    expected_set = set(expected)
+    
+    serendipitous = 0
+    for item in recommended:
+        if item in relevant_set and item not in expected_set:
+            serendipitous += 1
+    
+    return serendipitous / len(recommended)
+
+
+def gini_index(recommendations: List[List[Any]], catalog: List[Any]) -> float:
+    """
+    Calculate Gini Index (inequality of item recommendation frequency).
+    
+    Gini = 0 means perfectly uniform distribution
+    Gini = 1 means maximum inequality (all recommendations to one item)
+    
+    Args:
+        recommendations: List of recommendation lists
+        catalog: Complete catalog of items
+        
+    Returns:
+        Gini index (0 to 1)
+    """
+    # Count frequency of each item
+    item_counts = {item: 0 for item in catalog}
+    
+    for rec_list in recommendations:
+        for item in rec_list:
+            if item in item_counts:
+                item_counts[item] += 1
+    
+    counts = sorted(item_counts.values())
+    n = len(counts)
+    
+    if n == 0:
+        return 0.0
+    
+    total = sum(counts)
+    if total == 0:
+        return 0.0
+    
+    # Gini coefficient calculation
+    gini_sum = 0.0
+    for i, count in enumerate(counts):
+        gini_sum += (2 * (i + 1) - n - 1) * count
+    
+    gini = gini_sum / (n * total)
+    
+    return gini
+
+
+def expected_percentile_ranking(recommended: List[Any], 
+                                relevant: Dict[Any, float]) -> float:
+    """
+    Calculate Expected Percentile Ranking.
+    
+    Measures how high relevant items are ranked on average.
+    EPR of 0 = all relevant items at top, EPR of 100 = at bottom
+    
+    Args:
+        recommended: List of recommended items
+        relevant: Dict mapping items to relevance scores
+        
+    Returns:
+        Expected percentile ranking (0 to 100)
+    """
+    if not recommended or not relevant:
+        return 50.0
+    
+    n = len(recommended)
+    weighted_rank_sum = 0.0
+    weight_sum = 0.0
+    
+    for i, item in enumerate(recommended):
+        if item in relevant:
+            percentile = (i / n) * 100
+            weight = relevant[item]
+            weighted_rank_sum += percentile * weight
+            weight_sum += weight
+    
+    if weight_sum == 0:
+        return 50.0
+    
+    return weighted_rank_sum / weight_sum
+
+
+def auc_score(recommended: List[Any], relevant: List[Any], 
+              catalog: List[Any]) -> float:
+    """
+    Calculate Area Under ROC Curve for recommendations.
+    
+    AUC = P(random relevant item ranked higher than random irrelevant item)
+    
+    Args:
+        recommended: List of recommended items
+        relevant: List of relevant items
+        catalog: Complete catalog of items
+        
+    Returns:
+        AUC score (0 to 1)
+    """
+    relevant_set = set(relevant)
+    recommended_set = set(recommended)
+    
+    # Items not recommended
+    not_recommended = set(catalog) - recommended_set
+    
+    # Create ranking (recommended items first, then others)
+    ranking = {item: i for i, item in enumerate(recommended)}
+    next_rank = len(recommended)
+    for item in not_recommended:
+        ranking[item] = next_rank
+        next_rank += 1
+    
+    # Calculate AUC
+    relevant_in_catalog = [item for item in catalog if item in relevant_set]
+    irrelevant_in_catalog = [item for item in catalog if item not in relevant_set]
+    
+    if not relevant_in_catalog or not irrelevant_in_catalog:
+        return 0.5
+    
+    wins = 0
+    total = 0
+    
+    for rel_item in relevant_in_catalog:
+        for irr_item in irrelevant_in_catalog:
+            rel_rank = ranking.get(rel_item, len(ranking))
+            irr_rank = ranking.get(irr_item, len(ranking))
+            
+            if rel_rank < irr_rank:
+                wins += 1
+            elif rel_rank == irr_rank:
+                wins += 0.5
+            total += 1
+    
+    return wins / total if total > 0 else 0.5
+
+
+def inter_list_diversity(recommendations: List[List[Any]]) -> float:
+    """
+    Calculate Inter-List Diversity (diversity across users).
+    
+    Measures how different recommendations are across users.
+    
+    Args:
+        recommendations: List of recommendation lists (one per user)
+        
+    Returns:
+        Inter-list diversity (0 to 1)
+    """
+    n_users = len(recommendations)
+    if n_users < 2:
+        return 1.0
+    
+    total_dissim = 0.0
+    count = 0
+    
+    for i in range(n_users):
+        for j in range(i + 1, n_users):
+            set_i = set(recommendations[i])
+            set_j = set(recommendations[j])
+            
+            union = len(set_i | set_j)
+            intersection = len(set_i & set_j)
+            
+            if union > 0:
+                dissim = 1 - (intersection / union)
+            else:
+                dissim = 1.0
+            
+            total_dissim += dissim
+            count += 1
+    
+    return total_dissim / count if count > 0 else 1.0
+
+
+def entropy_diversity(recommendations: List[List[Any]], 
+                      catalog: List[Any]) -> float:
+    """
+    Calculate Entropy-based Diversity.
+    
+    Higher entropy = more diverse recommendations.
+    
+    Args:
+        recommendations: List of recommendation lists
+        catalog: Complete catalog of items
+        
+    Returns:
+        Normalized entropy (0 to 1)
+    """
+    # Count item frequencies
+    item_counts = {}
+    total = 0
+    
+    for rec_list in recommendations:
+        for item in rec_list:
+            item_counts[item] = item_counts.get(item, 0) + 1
+            total += 1
+    
+    if total == 0:
+        return 0.0
+    
+    # Calculate entropy
+    entropy = 0.0
+    for count in item_counts.values():
+        if count > 0:
+            p = count / total
+            entropy -= p * math.log2(p)
+    
+    # Normalize by max entropy
+    max_entropy = math.log2(len(catalog)) if len(catalog) > 1 else 1.0
+    
+    return entropy / max_entropy if max_entropy > 0 else 0.0
+
+
+def surprisal(recommended: List[Any], 
+              item_popularity: Dict[Any, float]) -> float:
+    """
+    Calculate Surprisal (information content of recommendations).
+    
+    Surprisal = -log2(P(item))
+    
+    Args:
+        recommended: List of recommended items
+        item_popularity: Dict mapping items to popularity/probability
+        
+    Returns:
+        Average surprisal
+    """
+    if not recommended:
+        return 0.0
+    
+    total_surprisal = 0.0
+    count = 0
+    
+    for item in recommended:
+        pop = item_popularity.get(item, 0.01)  # Default low probability
+        if pop > 0:
+            total_surprisal -= math.log2(pop)
+            count += 1
+    
+    return total_surprisal / count if count > 0 else 0.0
+
+
+def accuracy_at_k(recommended: List[Any], relevant: List[Any], 
+                  k: int) -> Dict[str, float]:
+    """
+    Calculate multiple accuracy metrics at K.
+    
+    Args:
+        recommended: List of recommended items
+        relevant: List of relevant items
+        k: Number of top recommendations
+        
+    Returns:
+        Dictionary with precision, recall, F1, and hit at K
+    """
+    p = precision_at_k(recommended, relevant, k)
+    r = recall_at_k(recommended, relevant, k)
+    f1 = f1_at_k(recommended, relevant, k)
+    hit = hit_rate(recommended, relevant, k)
+    
+    return {
+        'precision': p,
+        'recall': r,
+        'f1': f1,
+        'hit_rate': hit
+    }
+
+
+def ranking_correlation(recommended: List[Any], 
+                        ground_truth_ranking: List[Any]) -> Dict[str, float]:
+    """
+    Calculate ranking correlation metrics.
+    
+    Args:
+        recommended: List of recommended items (in order)
+        ground_truth_ranking: Ideal ranking of items
+        
+    Returns:
+        Dictionary with Kendall's tau and Spearman's rho approximations
+    """
+    # Create rank mappings
+    rec_rank = {item: i for i, item in enumerate(recommended)}
+    truth_rank = {item: i for i, item in enumerate(ground_truth_ranking)}
+    
+    # Common items
+    common = set(recommended) & set(ground_truth_ranking)
+    
+    if len(common) < 2:
+        return {'kendall_tau': 0.0, 'spearman_rho': 0.0}
+    
+    # Get ranks for common items
+    rec_ranks = [rec_rank[item] for item in common]
+    truth_ranks = [truth_rank[item] for item in common]
+    
+    # Kendall's tau: count concordant and discordant pairs
+    n = len(common)
+    concordant = 0
+    discordant = 0
+    
+    items_list = list(common)
+    for i in range(n):
+        for j in range(i + 1, n):
+            rec_diff = rec_rank[items_list[i]] - rec_rank[items_list[j]]
+            truth_diff = truth_rank[items_list[i]] - truth_rank[items_list[j]]
+            
+            if rec_diff * truth_diff > 0:
+                concordant += 1
+            elif rec_diff * truth_diff < 0:
+                discordant += 1
+    
+    pairs = n * (n - 1) / 2
+    kendall = (concordant - discordant) / pairs if pairs > 0 else 0.0
+    
+    # Spearman's rho: correlation of ranks
+    mean_rec = sum(rec_ranks) / n
+    mean_truth = sum(truth_ranks) / n
+    
+    cov = sum((rec_ranks[i] - mean_rec) * (truth_ranks[i] - mean_truth) 
+              for i in range(n))
+    std_rec = math.sqrt(sum((r - mean_rec) ** 2 for r in rec_ranks))
+    std_truth = math.sqrt(sum((r - mean_truth) ** 2 for r in truth_ranks))
+    
+    if std_rec > 0 and std_truth > 0:
+        spearman = cov / (std_rec * std_truth)
+    else:
+        spearman = 0.0
+    
+    return {
+        'kendall_tau': kendall,
+        'spearman_rho': spearman
+    }
+
+
+def beyond_accuracy_metrics(recommendations: List[List[Any]],
+                            relevants: List[List[Any]],
+                            catalog: List[Any],
+                            item_popularity: Dict[Any, float],
+                            k: int = 10) -> Dict[str, float]:
+    """
+    Calculate beyond-accuracy metrics for recommendation evaluation.
+    
+    Args:
+        recommendations: List of recommendation lists
+        relevants: List of relevant item lists
+        catalog: Complete catalog of items
+        item_popularity: Dict mapping items to popularity
+        k: Number of top recommendations
+        
+    Returns:
+        Dictionary with coverage, diversity, novelty metrics
+    """
+    return {
+        'catalog_coverage': catalog_coverage(recommendations, catalog),
+        'personalization': personalization(recommendations),
+        'novelty': novelty(recommendations, item_popularity),
+        'entropy_diversity': entropy_diversity(recommendations, catalog),
+        'gini_index': gini_index(recommendations, catalog),
+        'inter_list_diversity': inter_list_diversity(recommendations)
+    }
+
+
+# =============================================================================
 # Recommender Metrics Class
 # =============================================================================
 

@@ -46,6 +46,25 @@ from pyeval.ml import (
     ClassificationMetrics,
     RegressionMetrics,
     ClusteringMetrics,
+    # New ML metrics
+    balanced_accuracy_score,
+    log_loss,
+    brier_score,
+    hamming_loss,
+    jaccard_score,
+    top_k_accuracy,
+    expected_calibration_error,
+    mean_squared_log_error,
+    symmetric_mape,
+    huber_loss,
+    quantile_loss,
+    normalized_rmse,
+    adjusted_rand_score,
+    normalized_mutual_info_score,
+    homogeneity_score,
+    completeness_score as cluster_completeness_score,
+    v_measure_score,
+    fowlkes_mallows_score,
 )
 
 from pyeval.nlp import (
@@ -53,6 +72,16 @@ from pyeval.nlp import (
     rouge_score,
     meteor_score,
     NLPMetrics,
+    # New NLP metrics
+    chrf_score,
+    text_entropy,
+    repetition_ratio,
+    compression_ratio,
+    coverage_score,
+    density_score,
+    word_mover_distance_approx,
+    lexical_diversity,
+    sentence_bleu,
 )
 
 from pyeval.llm import (
@@ -65,6 +94,12 @@ from pyeval.llm import (
     completeness_score,
     factual_consistency,
     LLMMetrics,
+    # New LLM metrics
+    bias_detection,
+    instruction_following_score,
+    multi_turn_coherence,
+    summarization_quality,
+    response_diversity,
 )
 
 from pyeval.rag import (
@@ -78,6 +113,12 @@ from pyeval.rag import (
     noise_robustness,
     rag_faithfulness,
     RAGMetrics,
+    # New RAG metrics
+    context_entity_recall,
+    answer_attribution,
+    context_utilization,
+    question_answer_relevance,
+    rag_pipeline_score,
 )
 
 from pyeval.fairness import (
@@ -97,6 +138,23 @@ from pyeval.speech import (
     word_error_rate,
     character_error_rate,
     SpeechMetrics,
+    # New speech metrics
+    corpus_wer,
+    corpus_cer,
+    match_error_rate,
+    word_information_lost,
+    sentence_error_rate,
+    real_time_factor,
+    recognition_accuracy,
+    align_texts,
+    slot_error_rate,
+    intent_accuracy,
+    phoneme_error_rate,
+    diarization_error_rate,
+    keyword_spotting_metrics,
+    mean_opinion_score,
+    speech_intelligibility_index,
+    fluency_score as speech_fluency_score,
 )
 
 from pyeval.recommender import (
@@ -106,6 +164,29 @@ from pyeval.recommender import (
     mean_average_precision,
     hit_rate,
     RecommenderMetrics,
+    # New recommender metrics
+    f1_at_k,
+    mean_precision_at_k,
+    mean_recall_at_k,
+    mean_ndcg_at_k,
+    mean_hit_rate,
+    reciprocal_rank,
+    mean_reciprocal_rank,
+    catalog_coverage,
+    user_coverage,
+    intra_list_diversity,
+    personalization,
+    novelty,
+    serendipity,
+    gini_index,
+    expected_percentile_ranking,
+    auc_score,
+    inter_list_diversity,
+    entropy_diversity,
+    surprisal,
+    accuracy_at_k,
+    ranking_correlation,
+    beyond_accuracy_metrics,
 )
 
 # Unified evaluator
@@ -113,6 +194,36 @@ from pyeval.evaluator import Evaluator, EvaluationReport
 
 # Experiment tracking
 from pyeval.tracking import ExperimentTracker
+
+# Statistical utilities
+from pyeval.utils.math_ops import (
+    bootstrap_confidence_interval,
+    paired_t_test,
+    independent_t_test,
+    wilcoxon_signed_rank_test,
+    mann_whitney_u_test,
+    mcnemar_test,
+    cohens_d,
+    hedges_g,
+    glass_delta,
+    correlation_coefficient,
+    spearman_correlation,
+)
+
+# Visualization utilities
+from pyeval.utils.viz_ops import (
+    confusion_matrix_display,
+    classification_report_display,
+    horizontal_bar_chart,
+    histogram_display,
+    roc_curve_display,
+    pr_curve_display,
+    score_distribution_display,
+    metric_comparison_table,
+    progress_bar,
+    sparkline,
+    error_analysis_display,
+)
 
 # Decorators
 from pyeval.decorators import (
@@ -297,12 +408,41 @@ __all__ = [
     "ClassificationMetrics",
     "RegressionMetrics",
     "ClusteringMetrics",
+    # New ML metrics
+    "balanced_accuracy_score",
+    "log_loss",
+    "brier_score",
+    "hamming_loss",
+    "jaccard_score",
+    "top_k_accuracy",
+    "expected_calibration_error",
+    "mean_squared_log_error",
+    "symmetric_mape",
+    "huber_loss",
+    "quantile_loss",
+    "normalized_rmse",
+    "adjusted_rand_score",
+    "normalized_mutual_info_score",
+    "homogeneity_score",
+    "cluster_completeness_score",
+    "v_measure_score",
+    "fowlkes_mallows_score",
     
     # NLP Metrics
     "bleu_score",
     "rouge_score",
     "meteor_score",
     "NLPMetrics",
+    # New NLP metrics
+    "chrf_score",
+    "text_entropy",
+    "repetition_ratio",
+    "compression_ratio",
+    "coverage_score",
+    "density_score",
+    "word_mover_distance_approx",
+    "lexical_diversity",
+    "sentence_bleu",
     
     # LLM Metrics
     "hallucination_score",
@@ -314,6 +454,12 @@ __all__ = [
     "completeness_score",
     "factual_consistency",
     "LLMMetrics",
+    # New LLM metrics
+    "bias_detection",
+    "instruction_following_score",
+    "multi_turn_coherence",
+    "summarization_quality",
+    "response_diversity",
     
     # RAG Metrics
     "context_relevance",
@@ -326,6 +472,12 @@ __all__ = [
     "noise_robustness",
     "rag_faithfulness",
     "RAGMetrics",
+    # New RAG metrics
+    "context_entity_recall",
+    "answer_attribution",
+    "context_utilization",
+    "question_answer_relevance",
+    "rag_pipeline_score",
     
     # Fairness Metrics
     "demographic_parity",
@@ -343,11 +495,84 @@ __all__ = [
     "word_error_rate",
     "character_error_rate",
     "SpeechMetrics",
+    # New speech metrics
+    "corpus_wer",
+    "corpus_cer",
+    "match_error_rate",
+    "word_information_lost",
+    "sentence_error_rate",
+    "real_time_factor",
+    "recognition_accuracy",
+    "align_texts",
+    "slot_error_rate",
+    "intent_accuracy",
+    "phoneme_error_rate",
+    "diarization_error_rate",
+    "keyword_spotting_metrics",
+    "mean_opinion_score",
+    "speech_intelligibility_index",
+    "speech_fluency_score",
     
     # Recommender Metrics
     "precision_at_k",
     "recall_at_k",
     "ndcg_at_k",
+    "mean_average_precision",
+    "hit_rate",
+    "RecommenderMetrics",
+    # New recommender metrics
+    "f1_at_k",
+    "mean_precision_at_k",
+    "mean_recall_at_k",
+    "mean_ndcg_at_k",
+    "mean_hit_rate",
+    "reciprocal_rank",
+    "mean_reciprocal_rank",
+    "catalog_coverage",
+    "user_coverage",
+    "intra_list_diversity",
+    "personalization",
+    "novelty",
+    "serendipity",
+    "gini_index",
+    "expected_percentile_ranking",
+    "auc_score",
+    "inter_list_diversity",
+    "entropy_diversity",
+    "surprisal",
+    "accuracy_at_k",
+    "ranking_correlation",
+    "beyond_accuracy_metrics",
+    
+    # Statistical Utilities
+    "bootstrap_confidence_interval",
+    "paired_t_test",
+    "independent_t_test",
+    "wilcoxon_signed_rank_test",
+    "mann_whitney_u_test",
+    "mcnemar_test",
+    "cohens_d",
+    "hedges_g",
+    "glass_delta",
+    "correlation_coefficient",
+    "spearman_correlation",
+    
+    # Visualization Utilities
+    "confusion_matrix_display",
+    "classification_report_display",
+    "horizontal_bar_chart",
+    "histogram_display",
+    "roc_curve_display",
+    "pr_curve_display",
+    "score_distribution_display",
+    "metric_comparison_table",
+    "progress_bar",
+    "sparkline",
+    "error_analysis_display",
+    
+    # Evaluator
+    "Evaluator",
+    "EvaluationReport",
     "mean_average_precision",
     "hit_rate",
     "RecommenderMetrics",

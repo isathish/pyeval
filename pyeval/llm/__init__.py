@@ -716,6 +716,329 @@ def fluency_score(text: str) -> Dict[str, float]:
     }
 
 
+def bias_detection(text: str, bias_categories: Optional[List[str]] = None) -> Dict[str, Any]:
+    """
+    Detect potential bias in text.
+    
+    This is a rule-based approach using lexicon matching.
+    For production use, consider using a trained model.
+    
+    Args:
+        text: Text to analyze
+        bias_categories: Categories to check (None for all)
+        
+    Returns:
+        Dictionary with bias scores and detected terms
+    """
+    # Bias lexicons (simplified)
+    BIAS_LEXICONS = {
+        'gender': {
+            'stereotypes': [
+                r'\b(all|every)\s+(men|women|boys|girls)\s+(are|should|must)\b',
+                r'\b(naturally|inherently)\s+(better|worse)\b',
+                r'\b(real|true)\s+(man|woman)\b',
+            ],
+            'exclusionary': [
+                r'\b(mankind|manpower|chairman)\b',
+            ]
+        },
+        'age': {
+            'stereotypes': [
+                r'\b(old|elderly)\s+people\s+(can\'t|cannot|don\'t|unable)\b',
+                r'\b(young|millennial)\s+(lazy|entitled|irresponsible)\b',
+            ]
+        },
+        'racial': {
+            'stereotypes': [
+                r'\b(all|every|typical)\s+[A-Z][a-z]+(s)?\s+(are|always)\b',
+            ]
+        },
+        'disability': {
+            'ableist': [
+                r'\b(retarded|crippled|handicapped|lame|dumb)\b',
+            ]
+        }
+    }
+    
+    text_lower = text.lower()
+    
+    if bias_categories is None:
+        bias_categories = list(BIAS_LEXICONS.keys())
+    
+    results = {}
+    total_score = 0.0
+    detected_terms = []
+    
+    for category in bias_categories:
+        if category not in BIAS_LEXICONS:
+            continue
+        
+        category_matches = 0
+        for subcat, patterns in BIAS_LEXICONS[category].items():
+            for pattern in patterns:
+                matches = re.findall(pattern, text_lower)
+                category_matches += len(matches)
+                detected_terms.extend(matches)
+        
+        results[category] = category_matches
+        total_score += category_matches
+    
+    # Normalize score
+    word_count = len(tokenize(text))
+    bias_score = min(1.0, total_score / max(1, word_count / 20))
+    
+    return {
+        'bias_score': bias_score,
+        'has_bias': bias_score > 0.1,
+        'category_scores': results,
+        'detected_terms': detected_terms
+    }
+
+
+def instruction_following_score(instruction: str, response: str) -> Dict[str, float]:
+    """
+    Evaluate how well a response follows the given instruction.
+    
+    Args:
+        instruction: Instruction/prompt given
+        response: Model's response
+        
+    Returns:
+        Dictionary with instruction following metrics
+    """
+    # Extract instruction elements
+    instruction_lower = instruction.lower()
+    
+    # Check for length requirements
+    length_keywords = {
+        'brief': (1, 50),
+        'short': (1, 100),
+        'concise': (1, 100),
+        'detailed': (100, float('inf')),
+        'comprehensive': (150, float('inf')),
+        'elaborate': (150, float('inf')),
+    }
+    
+    response_words = len(tokenize(response))
+    length_score = 1.0
+    
+    for keyword, (min_len, max_len) in length_keywords.items():
+        if keyword in instruction_lower:
+            if min_len <= response_words <= max_len:
+                length_score = 1.0
+            elif response_words < min_len:
+                length_score = response_words / min_len
+            else:
+                length_score = max(0.5, max_len / response_words)
+            break
+    
+    # Check for format requirements
+    format_keywords = {
+        'list': r'(?:^\s*[-*•]\s+|\d+\.\s+)',
+        'bullet': r'(?:^\s*[-*•]\s+)',
+        'numbered': r'(?:^\s*\d+[.)]\s+)',
+        'steps': r'(?:step\s*\d+|^\s*\d+[.)]\s+)',
+    }
+    
+    format_score = 1.0
+    for keyword, pattern in format_keywords.items():
+        if keyword in instruction_lower:
+            matches = re.findall(pattern, response, re.MULTILINE)
+            if matches:
+                format_score = 1.0
+            else:
+                format_score = 0.5
+            break
+    
+    # Check for content requirements (keywords from instruction)
+    instruction_tokens = set(tokenize(instruction, lowercase=True, remove_punct=True))
+    instruction_tokens -= STOPWORDS
+    instruction_tokens -= {'please', 'write', 'explain', 'describe', 'tell', 'give'}
+    
+    response_tokens = set(tokenize(response, lowercase=True, remove_punct=True))
+    
+    if instruction_tokens:
+        topic_coverage = len(instruction_tokens & response_tokens) / len(instruction_tokens)
+    else:
+        topic_coverage = 0.5
+    
+    # Overall score
+    overall = (length_score * 0.3 + format_score * 0.3 + topic_coverage * 0.4)
+    
+    return {
+        'instruction_following': overall,
+        'length_score': length_score,
+        'format_score': format_score,
+        'topic_coverage': topic_coverage
+    }
+
+
+def multi_turn_coherence(conversation: List[Dict[str, str]]) -> Dict[str, float]:
+    """
+    Evaluate coherence across multiple turns in a conversation.
+    
+    Args:
+        conversation: List of turns, each with 'role' and 'content' keys
+        
+    Returns:
+        Dictionary with multi-turn coherence metrics
+    """
+    if len(conversation) < 2:
+        return {
+            'coherence': 1.0,
+            'topic_consistency': 1.0,
+            'reference_tracking': 1.0
+        }
+    
+    # Extract assistant responses
+    responses = [turn['content'] for turn in conversation if turn.get('role') == 'assistant']
+    
+    if len(responses) < 2:
+        return {
+            'coherence': 1.0,
+            'topic_consistency': 1.0,
+            'reference_tracking': 1.0
+        }
+    
+    # Topic consistency: measure keyword overlap between consecutive responses
+    topic_scores = []
+    for i in range(1, len(responses)):
+        prev_tokens = set(tokenize(responses[i-1], lowercase=True, remove_punct=True)) - STOPWORDS
+        curr_tokens = set(tokenize(responses[i], lowercase=True, remove_punct=True)) - STOPWORDS
+        
+        if prev_tokens and curr_tokens:
+            overlap = len(prev_tokens & curr_tokens) / len(prev_tokens | curr_tokens)
+            topic_scores.append(overlap)
+    
+    topic_consistency = mean(topic_scores) if topic_scores else 1.0
+    
+    # Reference tracking: check if pronouns/references are resolvable
+    ref_patterns = [r'\b(it|this|that|these|those|they|them)\b', r'\b(he|she|him|her)\b']
+    ref_score = 1.0
+    
+    for i, response in enumerate(responses[1:], 1):
+        prev_content = ' '.join(t['content'] for t in conversation[:i*2])
+        
+        for pattern in ref_patterns:
+            refs = re.findall(pattern, response.lower())
+            if refs:
+                # Simple check: was there context provided?
+                if len(tokenize(prev_content)) < 10:
+                    ref_score -= 0.1
+    
+    ref_score = max(0.0, ref_score)
+    
+    # Overall coherence
+    coherence = (topic_consistency * 0.6 + ref_score * 0.4)
+    
+    return {
+        'coherence': coherence,
+        'topic_consistency': topic_consistency,
+        'reference_tracking': ref_score
+    }
+
+
+def summarization_quality(source: str, summary: str) -> Dict[str, float]:
+    """
+    Evaluate quality of text summarization.
+    
+    Args:
+        source: Source text
+        summary: Generated summary
+        
+    Returns:
+        Dictionary with summarization quality metrics
+    """
+    from pyeval.nlp import rouge_score
+    
+    source_tokens = tokenize(source, lowercase=True, remove_punct=True)
+    summary_tokens = tokenize(summary, lowercase=True, remove_punct=True)
+    
+    # Compression ratio
+    compression = len(summary_tokens) / len(source_tokens) if source_tokens else 0
+    
+    # Coverage: what fraction of source content is in summary
+    source_set = set(source_tokens) - STOPWORDS
+    summary_set = set(summary_tokens) - STOPWORDS
+    
+    coverage = len(source_set & summary_set) / len(source_set) if source_set else 0
+    
+    # ROUGE scores
+    rouge = rouge_score(source, summary)
+    
+    # Information density (unique content words per token)
+    density = len(summary_set) / len(summary_tokens) if summary_tokens else 0
+    
+    # Redundancy (repeated content)
+    summary_counts = Counter(summary_tokens)
+    redundancy = sum(1 for c in summary_counts.values() if c > 1) / len(summary_set) if summary_set else 0
+    
+    # Overall quality
+    quality = (rouge['rouge1']['f1'] * 0.3 + coverage * 0.25 + 
+               density * 0.2 + (1 - redundancy) * 0.15 + 
+               (1 if 0.1 < compression < 0.5 else 0.5) * 0.1)
+    
+    return {
+        'quality': quality,
+        'compression_ratio': compression,
+        'coverage': coverage,
+        'density': density,
+        'redundancy': redundancy,
+        'rouge1_f1': rouge['rouge1']['f1'],
+        'rougeL_f1': rouge['rougeL']['f1']
+    }
+
+
+def response_diversity(responses: List[str]) -> Dict[str, float]:
+    """
+    Evaluate diversity across multiple generated responses.
+    
+    Args:
+        responses: List of generated responses
+        
+    Returns:
+        Dictionary with diversity metrics
+    """
+    if len(responses) < 2:
+        return {
+            'diversity': 1.0,
+            'self_bleu': 0.0,
+            'distinct_1': 1.0,
+            'distinct_2': 1.0
+        }
+    
+    # Self-BLEU (lower is more diverse)
+    from pyeval.nlp import bleu_score
+    
+    self_bleu_scores = []
+    for i, resp in enumerate(responses):
+        refs = [responses[j] for j in range(len(responses)) if j != i]
+        result = bleu_score(refs, resp, smoothing=True)
+        self_bleu_scores.append(result['bleu'])
+    
+    avg_self_bleu = mean(self_bleu_scores)
+    
+    # Distinct-N across all responses
+    all_tokens = []
+    for resp in responses:
+        all_tokens.extend(tokenize(resp, lowercase=True, remove_punct=True))
+    
+    all_bigrams = list(zip(all_tokens[:-1], all_tokens[1:]))
+    
+    distinct_1 = len(set(all_tokens)) / len(all_tokens) if all_tokens else 0
+    distinct_2 = len(set(all_bigrams)) / len(all_bigrams) if all_bigrams else 0
+    
+    # Overall diversity (higher is better)
+    diversity = (1 - avg_self_bleu) * 0.5 + distinct_1 * 0.25 + distinct_2 * 0.25
+    
+    return {
+        'diversity': diversity,
+        'self_bleu': avg_self_bleu,
+        'distinct_1': distinct_1,
+        'distinct_2': distinct_2
+    }
+
+
 # =============================================================================
 # LLM Metrics Class
 # =============================================================================

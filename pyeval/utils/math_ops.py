@@ -503,3 +503,559 @@ def kl_divergence(p: List[float], q: List[float], eps: float = 1e-15) -> float:
             kl += pi * math.log(pi / qi_clipped)
     
     return kl
+
+
+# =============================================================================
+# Statistical Testing Functions
+# =============================================================================
+
+import random
+from typing import Dict, Any
+
+
+def bootstrap_confidence_interval(data: List[Number], 
+                                  statistic: str = "mean",
+                                  confidence: float = 0.95,
+                                  n_bootstrap: int = 1000,
+                                  seed: Optional[int] = None) -> Dict[str, float]:
+    """
+    Calculate bootstrap confidence interval for a statistic.
+    
+    Args:
+        data: Sample data
+        statistic: Statistic to compute ("mean", "median", "std")
+        confidence: Confidence level (0-1)
+        n_bootstrap: Number of bootstrap samples
+        seed: Random seed for reproducibility
+        
+    Returns:
+        Dictionary with point estimate and confidence interval
+        
+    Example:
+        >>> result = bootstrap_confidence_interval([1, 2, 3, 4, 5], "mean", 0.95)
+        >>> 'ci_lower' in result and 'ci_upper' in result
+        True
+    """
+    if seed is not None:
+        random.seed(seed)
+    
+    stat_funcs = {
+        "mean": mean,
+        "median": median,
+        "std": lambda x: std(x, ddof=1)
+    }
+    
+    if statistic not in stat_funcs:
+        raise ValueError(f"Unknown statistic: {statistic}")
+    
+    stat_func = stat_funcs[statistic]
+    n = len(data)
+    
+    # Generate bootstrap samples
+    bootstrap_stats = []
+    for _ in range(n_bootstrap):
+        sample = [data[random.randint(0, n-1)] for _ in range(n)]
+        bootstrap_stats.append(stat_func(sample))
+    
+    # Sort bootstrap statistics
+    bootstrap_stats.sort()
+    
+    # Calculate percentiles
+    alpha = 1 - confidence
+    lower_idx = int(alpha / 2 * n_bootstrap)
+    upper_idx = int((1 - alpha / 2) * n_bootstrap) - 1
+    
+    return {
+        'point_estimate': stat_func(data),
+        'ci_lower': bootstrap_stats[lower_idx],
+        'ci_upper': bootstrap_stats[upper_idx],
+        'confidence': confidence,
+        'n_bootstrap': n_bootstrap,
+        'se': std(bootstrap_stats, ddof=1)  # Bootstrap standard error
+    }
+
+
+def paired_t_test(sample1: List[Number], sample2: List[Number]) -> Dict[str, float]:
+    """
+    Perform paired t-test (two-tailed).
+    
+    Tests whether the mean difference between paired observations is zero.
+    
+    Args:
+        sample1: First sample
+        sample2: Second sample (paired with sample1)
+        
+    Returns:
+        Dictionary with t-statistic, p-value approximation, and effect size
+        
+    Example:
+        >>> result = paired_t_test([1, 2, 3, 4], [1.5, 2.5, 3.5, 4.5])
+        >>> 't_statistic' in result
+        True
+    """
+    if len(sample1) != len(sample2):
+        raise ValueError("Samples must have the same length")
+    
+    n = len(sample1)
+    if n < 2:
+        raise ValueError("Need at least 2 paired observations")
+    
+    # Calculate differences
+    differences = [a - b for a, b in zip(sample1, sample2)]
+    
+    # Mean and std of differences
+    mean_diff = mean(differences)
+    se = std(differences, ddof=1) / math.sqrt(n)
+    
+    if se == 0:
+        return {
+            't_statistic': 0.0 if mean_diff == 0 else float('inf'),
+            'p_value': 1.0 if mean_diff == 0 else 0.0,
+            'mean_difference': mean_diff,
+            'cohens_d': 0.0,
+            'df': n - 1
+        }
+    
+    t_stat = mean_diff / se
+    df = n - 1
+    
+    # Approximate p-value using normal distribution for large df
+    # For small df, this is an approximation
+    z = abs(t_stat)
+    p_value = 2 * (1 - _normal_cdf(z))
+    
+    # Cohen's d effect size
+    cohens_d = mean_diff / std(differences, ddof=1)
+    
+    return {
+        't_statistic': t_stat,
+        'p_value': p_value,
+        'mean_difference': mean_diff,
+        'se': se,
+        'cohens_d': cohens_d,
+        'df': df
+    }
+
+
+def _normal_cdf(z: float) -> float:
+    """Approximate standard normal CDF using error function approximation."""
+    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
+
+
+def independent_t_test(sample1: List[Number], sample2: List[Number],
+                       equal_var: bool = True) -> Dict[str, float]:
+    """
+    Perform independent samples t-test (two-tailed).
+    
+    Args:
+        sample1: First sample
+        sample2: Second sample
+        equal_var: Assume equal variances (True) or use Welch's t-test (False)
+        
+    Returns:
+        Dictionary with t-statistic, p-value approximation, and effect size
+    """
+    n1, n2 = len(sample1), len(sample2)
+    
+    if n1 < 2 or n2 < 2:
+        raise ValueError("Each sample needs at least 2 observations")
+    
+    mean1, mean2 = mean(sample1), mean(sample2)
+    var1 = variance(sample1, ddof=1)
+    var2 = variance(sample2, ddof=1)
+    
+    mean_diff = mean1 - mean2
+    
+    if equal_var:
+        # Pooled variance
+        pooled_var = ((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2)
+        se = math.sqrt(pooled_var * (1/n1 + 1/n2))
+        df = n1 + n2 - 2
+    else:
+        # Welch's t-test
+        se = math.sqrt(var1/n1 + var2/n2)
+        # Welch-Satterthwaite df approximation
+        num = (var1/n1 + var2/n2) ** 2
+        denom = (var1/n1)**2 / (n1-1) + (var2/n2)**2 / (n2-1)
+        df = num / denom if denom > 0 else n1 + n2 - 2
+    
+    if se == 0:
+        return {
+            't_statistic': 0.0 if mean_diff == 0 else float('inf'),
+            'p_value': 1.0 if mean_diff == 0 else 0.0,
+            'mean_difference': mean_diff,
+            'cohens_d': 0.0,
+            'df': df
+        }
+    
+    t_stat = mean_diff / se
+    p_value = 2 * (1 - _normal_cdf(abs(t_stat)))
+    
+    # Cohen's d
+    pooled_std = math.sqrt(((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2))
+    cohens_d = mean_diff / pooled_std if pooled_std > 0 else 0.0
+    
+    return {
+        't_statistic': t_stat,
+        'p_value': p_value,
+        'mean_difference': mean_diff,
+        'se': se,
+        'cohens_d': cohens_d,
+        'df': df
+    }
+
+
+def wilcoxon_signed_rank_test(sample1: List[Number], 
+                               sample2: List[Number]) -> Dict[str, float]:
+    """
+    Perform Wilcoxon signed-rank test (non-parametric paired test).
+    
+    Args:
+        sample1: First sample
+        sample2: Second sample (paired)
+        
+    Returns:
+        Dictionary with test statistic and approximate p-value
+    """
+    if len(sample1) != len(sample2):
+        raise ValueError("Samples must have the same length")
+    
+    n = len(sample1)
+    
+    # Calculate differences (excluding zeros)
+    differences = []
+    for a, b in zip(sample1, sample2):
+        diff = a - b
+        if diff != 0:
+            differences.append(diff)
+    
+    if not differences:
+        return {'w_statistic': 0.0, 'p_value': 1.0, 'n_nonzero': 0}
+    
+    n_nonzero = len(differences)
+    
+    # Rank by absolute value
+    abs_diffs = [(abs(d), d) for d in differences]
+    abs_diffs.sort(key=lambda x: x[0])
+    
+    # Assign ranks (average for ties)
+    ranks = []
+    i = 0
+    while i < len(abs_diffs):
+        j = i
+        while j < len(abs_diffs) and abs_diffs[j][0] == abs_diffs[i][0]:
+            j += 1
+        avg_rank = (i + j + 1) / 2  # Average rank (1-indexed)
+        for k in range(i, j):
+            ranks.append((avg_rank, abs_diffs[k][1]))
+        i = j
+    
+    # Calculate W+ and W-
+    w_plus = sum(rank for rank, diff in ranks if diff > 0)
+    w_minus = sum(rank for rank, diff in ranks if diff < 0)
+    
+    w_stat = min(w_plus, w_minus)
+    
+    # Normal approximation for p-value (n >= 10)
+    expected = n_nonzero * (n_nonzero + 1) / 4
+    var_w = n_nonzero * (n_nonzero + 1) * (2 * n_nonzero + 1) / 24
+    
+    if var_w > 0:
+        z = (w_stat - expected) / math.sqrt(var_w)
+        p_value = 2 * (1 - _normal_cdf(abs(z)))
+    else:
+        p_value = 1.0
+    
+    return {
+        'w_statistic': w_stat,
+        'w_plus': w_plus,
+        'w_minus': w_minus,
+        'p_value': p_value,
+        'n_nonzero': n_nonzero
+    }
+
+
+def mann_whitney_u_test(sample1: List[Number], 
+                        sample2: List[Number]) -> Dict[str, float]:
+    """
+    Perform Mann-Whitney U test (non-parametric independent test).
+    
+    Args:
+        sample1: First sample
+        sample2: Second sample
+        
+    Returns:
+        Dictionary with U statistic and approximate p-value
+    """
+    n1, n2 = len(sample1), len(sample2)
+    
+    if n1 == 0 or n2 == 0:
+        raise ValueError("Both samples must have at least one observation")
+    
+    # Combine and rank all observations
+    combined = [(x, 0) for x in sample1] + [(x, 1) for x in sample2]
+    combined.sort(key=lambda x: x[0])
+    
+    # Assign ranks (average for ties)
+    ranks = []
+    i = 0
+    while i < len(combined):
+        j = i
+        while j < len(combined) and combined[j][0] == combined[i][0]:
+            j += 1
+        avg_rank = (i + j + 1) / 2
+        for k in range(i, j):
+            ranks.append((avg_rank, combined[k][1]))
+        i = j
+    
+    # Sum of ranks for each group
+    r1 = sum(rank for rank, group in ranks if group == 0)
+    
+    # Calculate U
+    u1 = r1 - n1 * (n1 + 1) / 2
+    u2 = n1 * n2 - u1
+    u_stat = min(u1, u2)
+    
+    # Normal approximation for p-value
+    expected = n1 * n2 / 2
+    var_u = n1 * n2 * (n1 + n2 + 1) / 12
+    
+    if var_u > 0:
+        z = (u_stat - expected) / math.sqrt(var_u)
+        p_value = 2 * (1 - _normal_cdf(abs(z)))
+    else:
+        p_value = 1.0
+    
+    return {
+        'u_statistic': u_stat,
+        'u1': u1,
+        'u2': u2,
+        'p_value': p_value,
+        'effect_size': u_stat / (n1 * n2)  # Common language effect size
+    }
+
+
+def mcnemar_test(table: List[List[int]]) -> Dict[str, float]:
+    """
+    Perform McNemar's test for paired nominal data.
+    
+    Used to compare two classifiers on the same test set.
+    
+    Args:
+        table: 2x2 contingency table [[a, b], [c, d]]
+               where b = classifier1 correct, classifier2 wrong
+               and c = classifier1 wrong, classifier2 correct
+        
+    Returns:
+        Dictionary with chi-square statistic and p-value
+    """
+    if len(table) != 2 or len(table[0]) != 2 or len(table[1]) != 2:
+        raise ValueError("Table must be 2x2")
+    
+    b = table[0][1]  # Classifier 1 correct, Classifier 2 wrong
+    c = table[1][0]  # Classifier 1 wrong, Classifier 2 correct
+    
+    if b + c == 0:
+        return {'chi_square': 0.0, 'p_value': 1.0, 'b': b, 'c': c}
+    
+    # McNemar's chi-square statistic
+    chi_sq = (abs(b - c) - 1) ** 2 / (b + c)  # With continuity correction
+    
+    # P-value from chi-square distribution with df=1
+    # Using Wilson-Hilferty approximation
+    p_value = 1 - _chi_square_cdf(chi_sq, df=1)
+    
+    return {
+        'chi_square': chi_sq,
+        'p_value': p_value,
+        'b': b,
+        'c': c
+    }
+
+
+def _chi_square_cdf(x: float, df: int) -> float:
+    """Approximate chi-square CDF using gamma function relation."""
+    if x <= 0:
+        return 0.0
+    
+    # For df=1, chi-square CDF = 2 * Phi(sqrt(x)) - 1
+    if df == 1:
+        return 2 * _normal_cdf(math.sqrt(x)) - 1
+    
+    # For other df, use approximation
+    k = df / 2
+    z = x / 2
+    
+    # Incomplete gamma approximation
+    # Using series expansion for small z
+    if z < k + 1:
+        sum_val = 1.0
+        term = 1.0
+        for n in range(1, 100):
+            term *= z / (k + n)
+            sum_val += term
+            if abs(term) < 1e-10:
+                break
+        return (z ** k * math.exp(-z) * sum_val) / math.gamma(k + 1)
+    else:
+        # Use continued fraction for large z
+        return 1.0 - 0.5 * math.erfc(math.sqrt(z - k))
+
+
+def cohens_d(sample1: List[Number], sample2: List[Number]) -> float:
+    """
+    Calculate Cohen's d effect size.
+    
+    Args:
+        sample1: First sample
+        sample2: Second sample
+        
+    Returns:
+        Cohen's d value
+        
+    Interpretation:
+        |d| < 0.2: negligible
+        0.2 <= |d| < 0.5: small
+        0.5 <= |d| < 0.8: medium
+        |d| >= 0.8: large
+    """
+    n1, n2 = len(sample1), len(sample2)
+    mean1, mean2 = mean(sample1), mean(sample2)
+    var1 = variance(sample1, ddof=1)
+    var2 = variance(sample2, ddof=1)
+    
+    # Pooled standard deviation
+    pooled_std = math.sqrt(((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2))
+    
+    if pooled_std == 0:
+        return 0.0
+    
+    return (mean1 - mean2) / pooled_std
+
+
+def hedges_g(sample1: List[Number], sample2: List[Number]) -> float:
+    """
+    Calculate Hedges' g effect size (bias-corrected Cohen's d).
+    
+    Args:
+        sample1: First sample
+        sample2: Second sample
+        
+    Returns:
+        Hedges' g value
+    """
+    d = cohens_d(sample1, sample2)
+    n = len(sample1) + len(sample2)
+    
+    # Correction factor
+    correction = 1 - 3 / (4 * n - 9)
+    
+    return d * correction
+
+
+def glass_delta(control: List[Number], treatment: List[Number]) -> float:
+    """
+    Calculate Glass's delta effect size.
+    
+    Uses only the control group's standard deviation.
+    
+    Args:
+        control: Control group sample
+        treatment: Treatment group sample
+        
+    Returns:
+        Glass's delta value
+    """
+    control_std = std(control, ddof=1)
+    
+    if control_std == 0:
+        return 0.0
+    
+    return (mean(treatment) - mean(control)) / control_std
+
+
+def correlation_coefficient(x: List[Number], y: List[Number]) -> Dict[str, float]:
+    """
+    Calculate Pearson correlation coefficient and related statistics.
+    
+    Args:
+        x: First variable
+        y: Second variable
+        
+    Returns:
+        Dictionary with correlation, r-squared, and significance
+    """
+    if len(x) != len(y):
+        raise ValueError("Variables must have the same length")
+    
+    n = len(x)
+    if n < 3:
+        raise ValueError("Need at least 3 observations")
+    
+    mean_x, mean_y = mean(x), mean(y)
+    
+    # Calculate covariance and standard deviations
+    cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y)) / (n - 1)
+    std_x = std(x, ddof=1)
+    std_y = std(y, ddof=1)
+    
+    if std_x == 0 or std_y == 0:
+        return {'r': 0.0, 'r_squared': 0.0, 'p_value': 1.0}
+    
+    r = cov / (std_x * std_y)
+    r_squared = r ** 2
+    
+    # T-test for significance
+    if abs(r) < 1:
+        t_stat = r * math.sqrt((n - 2) / (1 - r ** 2))
+        p_value = 2 * (1 - _normal_cdf(abs(t_stat)))
+    else:
+        p_value = 0.0
+    
+    return {
+        'r': r,
+        'r_squared': r_squared,
+        'p_value': p_value,
+        'n': n
+    }
+
+
+def spearman_correlation(x: List[Number], y: List[Number]) -> Dict[str, float]:
+    """
+    Calculate Spearman rank correlation coefficient.
+    
+    Args:
+        x: First variable
+        y: Second variable
+        
+    Returns:
+        Dictionary with correlation coefficient
+    """
+    if len(x) != len(y):
+        raise ValueError("Variables must have the same length")
+    
+    n = len(x)
+    
+    # Convert to ranks
+    def to_ranks(data: List[Number]) -> List[float]:
+        indexed = [(val, i) for i, val in enumerate(data)]
+        indexed.sort(key=lambda x: x[0])
+        
+        ranks = [0.0] * n
+        i = 0
+        while i < n:
+            j = i
+            while j < n and indexed[j][0] == indexed[i][0]:
+                j += 1
+            avg_rank = (i + j + 1) / 2
+            for k in range(i, j):
+                ranks[indexed[k][1]] = avg_rank
+            i = j
+        return ranks
+    
+    ranks_x = to_ranks(x)
+    ranks_y = to_ranks(y)
+    
+    # Calculate Pearson correlation on ranks
+    return correlation_coefficient(ranks_x, ranks_y)
+

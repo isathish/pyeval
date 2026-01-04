@@ -634,6 +634,301 @@ def noise_robustness(question: str, answer: str,
     }
 
 
+def context_entity_recall(contexts: List[str], ground_truth: str) -> Dict[str, float]:
+    """
+    Calculate entity recall from contexts to ground truth.
+    
+    Measures how many key entities from the ground truth are present in contexts.
+    
+    Args:
+        contexts: Retrieved context passages
+        ground_truth: Ground truth answer containing key entities
+        
+    Returns:
+        Dictionary with entity recall metrics
+    """
+    # Extract entities (capitalized words, numbers, quoted strings)
+    def extract_entities(text: str) -> Set[str]:
+        entities = set()
+        # Proper nouns (capitalized words)
+        entities.update(re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', text))
+        # Numbers with units
+        entities.update(re.findall(r'\b\d+(?:\.\d+)?(?:\s*(?:km|m|kg|lb|%|year|day|hour)s?)?\b', text))
+        # Quoted strings
+        entities.update(re.findall(r'"([^"]+)"', text))
+        entities.update(re.findall(r"'([^']+)'", text))
+        return entities
+    
+    truth_entities = extract_entities(ground_truth)
+    
+    if not truth_entities:
+        return {
+            'entity_recall': 1.0,
+            'found_entities': [],
+            'missing_entities': [],
+            'total_entities': 0
+        }
+    
+    combined_context = ' '.join(contexts)
+    context_entities = extract_entities(combined_context)
+    context_text_lower = combined_context.lower()
+    
+    found = []
+    missing = []
+    
+    for entity in truth_entities:
+        if entity in context_entities or entity.lower() in context_text_lower:
+            found.append(entity)
+        else:
+            missing.append(entity)
+    
+    recall = len(found) / len(truth_entities)
+    
+    return {
+        'entity_recall': recall,
+        'found_entities': found,
+        'missing_entities': missing,
+        'total_entities': len(truth_entities)
+    }
+
+
+def answer_attribution(answer: str, contexts: List[str]) -> Dict[str, Any]:
+    """
+    Attribute parts of the answer to specific contexts.
+    
+    Identifies which context(s) each sentence in the answer comes from.
+    
+    Args:
+        answer: Generated answer
+        contexts: Retrieved contexts
+        
+    Returns:
+        Dictionary with attribution details
+    """
+    sentences = sentence_split(answer)
+    
+    attributions = []
+    attributed_count = 0
+    
+    for sent in sentences:
+        sent_tokens = set(tokenize(sent, lowercase=True, remove_punct=True))
+        sent_tokens -= STOPWORDS
+        
+        best_context = -1
+        best_score = 0.0
+        
+        for i, ctx in enumerate(contexts):
+            ctx_tokens = set(tokenize(ctx, lowercase=True, remove_punct=True))
+            ctx_tokens -= STOPWORDS
+            
+            if sent_tokens and ctx_tokens:
+                overlap = len(sent_tokens & ctx_tokens) / len(sent_tokens)
+                if overlap > best_score:
+                    best_score = overlap
+                    best_context = i
+        
+        is_attributed = best_score >= 0.3
+        if is_attributed:
+            attributed_count += 1
+        
+        attributions.append({
+            'sentence': sent,
+            'context_index': best_context if is_attributed else None,
+            'confidence': best_score,
+            'is_attributed': is_attributed
+        })
+    
+    attribution_rate = attributed_count / len(sentences) if sentences else 0.0
+    
+    # Which contexts were used
+    used_contexts = set(a['context_index'] for a in attributions if a['context_index'] is not None)
+    
+    return {
+        'attribution_rate': attribution_rate,
+        'attributions': attributions,
+        'used_context_indices': list(used_contexts),
+        'context_utilization': len(used_contexts) / len(contexts) if contexts else 0.0
+    }
+
+
+def context_utilization(answer: str, contexts: List[str]) -> Dict[str, float]:
+    """
+    Measure how much of each context is utilized in the answer.
+    
+    Args:
+        answer: Generated answer
+        contexts: Retrieved contexts
+        
+    Returns:
+        Dictionary with utilization metrics per context
+    """
+    answer_tokens = set(tokenize(answer, lowercase=True, remove_punct=True))
+    answer_tokens -= STOPWORDS
+    
+    utilizations = []
+    
+    for i, ctx in enumerate(contexts):
+        ctx_tokens = set(tokenize(ctx, lowercase=True, remove_punct=True))
+        ctx_tokens -= STOPWORDS
+        
+        if ctx_tokens:
+            # What fraction of context appears in answer
+            utilization = len(ctx_tokens & answer_tokens) / len(ctx_tokens)
+        else:
+            utilization = 0.0
+        
+        utilizations.append({
+            'context_index': i,
+            'utilization': utilization
+        })
+    
+    # Overall metrics
+    avg_utilization = mean([u['utilization'] for u in utilizations]) if utilizations else 0.0
+    max_utilization = max([u['utilization'] for u in utilizations]) if utilizations else 0.0
+    utilized_contexts = sum(1 for u in utilizations if u['utilization'] > 0.1)
+    
+    return {
+        'average_utilization': avg_utilization,
+        'max_utilization': max_utilization,
+        'utilized_context_count': utilized_contexts,
+        'total_contexts': len(contexts),
+        'per_context': utilizations
+    }
+
+
+def question_answer_relevance(question: str, answer: str) -> Dict[str, float]:
+    """
+    Measure relevance of answer to the question.
+    
+    Args:
+        question: User question
+        answer: Generated answer
+        
+    Returns:
+        Dictionary with relevance metrics
+    """
+    # Extract question type and key terms
+    q_lower = question.lower()
+    
+    # Question type detection
+    q_types = {
+        'what': ['what'],
+        'who': ['who'],
+        'when': ['when'],
+        'where': ['where'],
+        'why': ['why'],
+        'how': ['how'],
+        'which': ['which'],
+        'yes_no': ['is ', 'are ', 'do ', 'does ', 'can ', 'will ', 'should ']
+    }
+    
+    question_type = 'other'
+    for qtype, markers in q_types.items():
+        if any(q_lower.startswith(m) or f' {m}' in q_lower for m in markers):
+            question_type = qtype
+            break
+    
+    # Answer type matching
+    answer_lower = answer.lower()
+    type_match_score = 1.0
+    
+    if question_type == 'yes_no':
+        if any(w in answer_lower for w in ['yes', 'no', 'correct', 'incorrect', 'true', 'false']):
+            type_match_score = 1.0
+        else:
+            type_match_score = 0.7
+    elif question_type == 'when':
+        if re.search(r'\b\d{4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)', answer_lower):
+            type_match_score = 1.0
+        else:
+            type_match_score = 0.6
+    elif question_type == 'where':
+        # Check for location indicators
+        if re.search(r'\b(?:in|at|near|from|to)\s+[A-Z]', answer):
+            type_match_score = 1.0
+        else:
+            type_match_score = 0.7
+    
+    # Keyword coverage
+    q_tokens = set(tokenize(question, lowercase=True, remove_punct=True))
+    q_tokens -= STOPWORDS
+    q_tokens -= {'what', 'who', 'when', 'where', 'why', 'how', 'which', 'is', 'are', 'do', 'does'}
+    
+    a_tokens = set(tokenize(answer, lowercase=True, remove_punct=True))
+    
+    keyword_coverage = len(q_tokens & a_tokens) / len(q_tokens) if q_tokens else 0.5
+    
+    # Overall relevance
+    relevance = type_match_score * 0.4 + keyword_coverage * 0.6
+    
+    return {
+        'relevance': relevance,
+        'question_type': question_type,
+        'type_match_score': type_match_score,
+        'keyword_coverage': keyword_coverage
+    }
+
+
+def rag_pipeline_score(question: str, contexts: List[str], answer: str,
+                       ground_truth: Optional[str] = None) -> Dict[str, float]:
+    """
+    Comprehensive RAG pipeline evaluation.
+    
+    Combines multiple metrics into an overall score.
+    
+    Args:
+        question: User question
+        contexts: Retrieved contexts
+        answer: Generated answer
+        ground_truth: Ground truth answer (optional)
+        
+    Returns:
+        Dictionary with all RAG metrics and overall score
+    """
+    # Retrieval quality
+    ctx_rel = context_relevance(question, contexts)
+    
+    # Generation quality
+    ground = groundedness_score(answer, contexts)
+    faith = rag_faithfulness(answer, contexts)
+    qa_rel = question_answer_relevance(question, answer)
+    
+    # Attribution
+    attrib = answer_attribution(answer, contexts)
+    
+    # Correctness (if ground truth available)
+    if ground_truth:
+        correct = answer_correctness(answer, ground_truth)
+        correctness = correct['correctness']
+    else:
+        correctness = None
+    
+    # Calculate overall score
+    scores = [
+        ctx_rel['overall_relevance'] * 0.2,
+        ground['groundedness'] * 0.25,
+        faith['faithfulness'] * 0.25,
+        qa_rel['relevance'] * 0.2,
+        attrib['attribution_rate'] * 0.1
+    ]
+    
+    overall = sum(scores)
+    
+    result = {
+        'overall_score': overall,
+        'retrieval_score': ctx_rel['overall_relevance'],
+        'groundedness': ground['groundedness'],
+        'faithfulness': faith['faithfulness'],
+        'relevance': qa_rel['relevance'],
+        'attribution_rate': attrib['attribution_rate']
+    }
+    
+    if correctness is not None:
+        result['correctness'] = correctness
+    
+    return result
+
+
 # =============================================================================
 # RAG Metrics Class
 # =============================================================================

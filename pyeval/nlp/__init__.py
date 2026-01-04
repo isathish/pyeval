@@ -709,6 +709,314 @@ def perplexity_from_logprobs(log_probs: List[float]) -> float:
     return math.exp(-avg_log_prob)
 
 
+def chrf_score(reference: str, candidate: str, 
+               n: int = 6, beta: float = 2.0) -> Dict[str, float]:
+    """
+    Calculate chrF (character n-gram F-score).
+    
+    chrF is a character-level metric that is more robust to morphological
+    variations than word-based metrics.
+    
+    Args:
+        reference: Reference text
+        candidate: Candidate text
+        n: Maximum character n-gram order
+        beta: Weight of recall vs precision
+        
+    Returns:
+        Dictionary with chrF scores
+    """
+    def char_ngrams(text: str, order: int) -> Counter:
+        """Extract character n-grams from text."""
+        return Counter(text[i:i+order] for i in range(len(text) - order + 1))
+    
+    ref_clean = reference.lower()
+    cand_clean = candidate.lower()
+    
+    total_precision = 0.0
+    total_recall = 0.0
+    n_orders = 0
+    
+    for order in range(1, n + 1):
+        ref_ngrams = char_ngrams(ref_clean, order)
+        cand_ngrams = char_ngrams(cand_clean, order)
+        
+        if not cand_ngrams or not ref_ngrams:
+            continue
+        
+        # Calculate precision and recall
+        overlap = sum((cand_ngrams & ref_ngrams).values())
+        
+        precision = overlap / sum(cand_ngrams.values()) if cand_ngrams else 0.0
+        recall = overlap / sum(ref_ngrams.values()) if ref_ngrams else 0.0
+        
+        total_precision += precision
+        total_recall += recall
+        n_orders += 1
+    
+    if n_orders == 0:
+        return {'chrf': 0.0, 'precision': 0.0, 'recall': 0.0}
+    
+    avg_precision = total_precision / n_orders
+    avg_recall = total_recall / n_orders
+    
+    # F-score with beta
+    if avg_precision + avg_recall == 0:
+        chrf = 0.0
+    else:
+        chrf = (1 + beta ** 2) * avg_precision * avg_recall / (beta ** 2 * avg_precision + avg_recall)
+    
+    return {
+        'chrf': chrf,
+        'precision': avg_precision,
+        'recall': avg_recall
+    }
+
+
+def text_entropy(text: str, n: int = 1) -> float:
+    """
+    Calculate entropy of text based on n-gram distribution.
+    
+    Higher entropy indicates more diverse/unpredictable text.
+    
+    Args:
+        text: Input text
+        n: N-gram size
+        
+    Returns:
+        Entropy value
+    """
+    tokens = tokenize(text, lowercase=True, remove_punct=True)
+    
+    if len(tokens) < n:
+        return 0.0
+    
+    ngram_list = list(ngrams(tokens, n))
+    total = len(ngram_list)
+    
+    if total == 0:
+        return 0.0
+    
+    ngram_counts = Counter(ngram_list)
+    
+    entropy = 0.0
+    for count in ngram_counts.values():
+        prob = count / total
+        entropy -= prob * math.log2(prob)
+    
+    return entropy
+
+
+def repetition_ratio(text: str, n: int = 3) -> float:
+    """
+    Calculate repetition ratio of text.
+    
+    Measures how much of the text is repeated n-grams.
+    Higher values indicate more repetition.
+    
+    Args:
+        text: Input text
+        n: N-gram size for detecting repetition
+        
+    Returns:
+        Repetition ratio (0 to 1)
+    """
+    tokens = tokenize(text, lowercase=True, remove_punct=True)
+    
+    if len(tokens) < n:
+        return 0.0
+    
+    ngram_list = list(ngrams(tokens, n))
+    total = len(ngram_list)
+    
+    if total == 0:
+        return 0.0
+    
+    ngram_counts = Counter(ngram_list)
+    
+    # Count tokens covered by repeated n-grams
+    repeated_ngrams = sum(count for count in ngram_counts.values() if count > 1)
+    
+    return repeated_ngrams / total
+
+
+def compression_ratio(original: str, summary: str) -> float:
+    """
+    Calculate compression ratio for summarization.
+    
+    Args:
+        original: Original text
+        summary: Summary text
+        
+    Returns:
+        Compression ratio (summary_length / original_length)
+    """
+    orig_tokens = tokenize(original)
+    sum_tokens = tokenize(summary)
+    
+    if not orig_tokens:
+        return 0.0
+    
+    return len(sum_tokens) / len(orig_tokens)
+
+
+def coverage_score(source: str, summary: str) -> float:
+    """
+    Calculate coverage score for summarization.
+    
+    Measures how much of the source content is covered in the summary.
+    
+    Args:
+        source: Source text
+        summary: Summary text
+        
+    Returns:
+        Coverage score (0 to 1)
+    """
+    source_tokens = set(tokenize(source, lowercase=True, remove_punct=True))
+    source_tokens -= STOPWORDS
+    
+    summary_tokens = set(tokenize(summary, lowercase=True, remove_punct=True))
+    summary_tokens -= STOPWORDS
+    
+    if not source_tokens:
+        return 0.0
+    
+    covered = len(source_tokens & summary_tokens)
+    return covered / len(source_tokens)
+
+
+def density_score(source: str, summary: str) -> float:
+    """
+    Calculate density score for extractive summarization.
+    
+    Higher density means summary contains more extractive fragments.
+    
+    Args:
+        source: Source text
+        summary: Summary text
+        
+    Returns:
+        Density score
+    """
+    source_tokens = tokenize(source, lowercase=True)
+    summary_tokens = tokenize(summary, lowercase=True)
+    
+    if not summary_tokens:
+        return 0.0
+    
+    # Find longest common subsequences
+    def lcs_length(s1, s2):
+        if not s1 or not s2:
+            return 0
+        m, n = len(s1), len(s2)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if s1[i-1] == s2[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+        return dp[m][n]
+    
+    lcs_len = lcs_length(source_tokens, summary_tokens)
+    return lcs_len / len(summary_tokens) if summary_tokens else 0.0
+
+
+def word_mover_distance_approx(text1: str, text2: str) -> float:
+    """
+    Calculate approximate Word Mover's Distance.
+    
+    This is a simplified version using word overlap as a proxy.
+    
+    Args:
+        text1: First text
+        text2: Second text
+        
+    Returns:
+        Approximate WMD (lower is more similar)
+    """
+    tokens1 = set(tokenize(text1, lowercase=True, remove_punct=True)) - STOPWORDS
+    tokens2 = set(tokenize(text2, lowercase=True, remove_punct=True)) - STOPWORDS
+    
+    if not tokens1 or not tokens2:
+        return 1.0
+    
+    # Use Jaccard distance as approximation
+    intersection = len(tokens1 & tokens2)
+    union = len(tokens1 | tokens2)
+    
+    return 1 - (intersection / union) if union > 0 else 1.0
+
+
+def lexical_diversity(text: str) -> Dict[str, float]:
+    """
+    Calculate multiple lexical diversity metrics.
+    
+    Args:
+        text: Input text
+        
+    Returns:
+        Dictionary with diversity metrics
+    """
+    tokens = tokenize(text, lowercase=True, remove_punct=True)
+    
+    if not tokens:
+        return {
+            'ttr': 0.0,
+            'root_ttr': 0.0,
+            'log_ttr': 0.0,
+            'maas': 0.0,
+            'vocabulary_size': 0,
+            'total_tokens': 0
+        }
+    
+    types = set(tokens)
+    n_types = len(types)
+    n_tokens = len(tokens)
+    
+    # Type-Token Ratio
+    ttr = n_types / n_tokens
+    
+    # Root TTR (Guiraud's index)
+    root_ttr = n_types / math.sqrt(n_tokens)
+    
+    # Log TTR (Herdan's C)
+    log_ttr = math.log(n_types) / math.log(n_tokens) if n_tokens > 1 else 0
+    
+    # Maas index (lower is more diverse)
+    maas = (math.log(n_tokens) - math.log(n_types)) / (math.log(n_tokens) ** 2) if n_tokens > 1 else 0
+    
+    return {
+        'ttr': ttr,
+        'root_ttr': root_ttr,
+        'log_ttr': log_ttr,
+        'maas': maas,
+        'vocabulary_size': n_types,
+        'total_tokens': n_tokens
+    }
+
+
+def sentence_bleu(reference: str, candidate: str, 
+                  max_n: int = 4, smoothing: bool = True) -> float:
+    """
+    Calculate sentence-level BLEU score.
+    
+    Convenience wrapper for single sentence evaluation.
+    
+    Args:
+        reference: Reference sentence
+        candidate: Candidate sentence
+        max_n: Maximum n-gram order
+        smoothing: Apply smoothing
+        
+    Returns:
+        BLEU score
+    """
+    result = bleu_score([reference], candidate, max_n=max_n, smoothing=smoothing)
+    return result['bleu']
+
+
 # =============================================================================
 # NLP Metrics Class
 # =============================================================================

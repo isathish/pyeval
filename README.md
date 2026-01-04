@@ -8,15 +8,17 @@ PyEval is a complete evaluation library for Machine Learning, NLP, LLM, RAG, Fai
 
 | Category | Metrics |
 |----------|---------|
-| **ML Classification** | Accuracy, Precision, Recall, F1, ROC-AUC, Confusion Matrix |
-| **ML Regression** | MSE, RMSE, MAE, MAPE, R² |
-| **Clustering** | Silhouette Score, Davies-Bouldin, Calinski-Harabasz |
-| **NLP** | BLEU, ROUGE (1/2/L), METEOR, TER, Distinct-N |
-| **LLM Evaluation** | Toxicity, Hallucination, Relevancy, Faithfulness, Coherence |
-| **RAG Evaluation** | Context Relevance, Answer Correctness, Groundedness |
+| **ML Classification** | Accuracy, Precision, Recall, F1, ROC-AUC, Confusion Matrix, **Balanced Accuracy, Log Loss, Brier Score, Hamming Loss, Jaccard, Top-K Accuracy, Expected Calibration Error** |
+| **ML Regression** | MSE, RMSE, MAE, MAPE, R², **MSLE, Symmetric MAPE, Huber Loss, Quantile Loss, Normalized RMSE** |
+| **Clustering** | Silhouette Score, Davies-Bouldin, Calinski-Harabasz, **Adjusted Rand Index, Normalized Mutual Info, Homogeneity, Completeness, V-Measure, Fowlkes-Mallows** |
+| **NLP** | BLEU, ROUGE (1/2/L), METEOR, TER, Distinct-N, **chrF, Text Entropy, Repetition Ratio, Compression Ratio, Coverage, Density, Lexical Diversity** |
+| **LLM Evaluation** | Toxicity, Hallucination, Relevancy, Faithfulness, Coherence, **Bias Detection, Instruction Following, Multi-Turn Coherence, Summarization Quality, Response Diversity** |
+| **RAG Evaluation** | Context Relevance, Answer Correctness, Groundedness, **Context Entity Recall, Answer Attribution, Context Utilization, Question-Answer Relevance, RAG Pipeline Score** |
 | **Fairness** | Demographic Parity, Equalized Odds, Disparate Impact |
-| **Speech** | WER, CER, MER, WIL, SER |
-| **Recommender** | Precision@K, Recall@K, NDCG, MAP, Hit Rate, MRR |
+| **Speech** | WER, CER, MER, WIL, SER, **Slot Error Rate, Intent Accuracy, Phoneme Error Rate, Diarization Error Rate, Keyword Spotting, MOS, Fluency** |
+| **Recommender** | Precision@K, Recall@K, NDCG, MAP, Hit Rate, MRR, **Serendipity, Gini Index, Inter-List Diversity, Entropy Diversity, Ranking Correlation** |
+| **Statistical Tests** | **Bootstrap CI, Paired t-test, Independent t-test, Wilcoxon, Mann-Whitney U, McNemar, Cohen's d, Hedges' g, Spearman** |
+| **Visualization** | **ASCII Confusion Matrix, Classification Report, Bar Charts, Histograms, ROC/PR Curves, Sparklines** |
 
 ### 🛠️ Advanced Features
 
@@ -453,7 +455,7 @@ final_predictions = ensemble.aggregate()
 
 ```
 pyeval/
-├── __init__.py          # Main package exports (200+ exports)
+├── __init__.py          # Main package exports (300+ exports)
 ├── evaluator.py         # Unified Evaluator & Report
 ├── tracking.py          # Experiment Tracking
 ├── decorators.py        # @timed, @memoize, @retry, @logged, etc.
@@ -464,23 +466,24 @@ pyeval/
 ├── functional.py        # Result/Option monads, curry, compose
 ├── aggregators.py       # Statistical, CV, Ensemble aggregators
 ├── ml/
-│   └── __init__.py      # Classification, Regression, Clustering
+│   └── __init__.py      # Classification, Regression, Clustering (40+ metrics)
 ├── nlp/
-│   └── __init__.py      # BLEU, ROUGE, METEOR, TER
+│   └── __init__.py      # BLEU, ROUGE, METEOR, TER, chrF (15+ metrics)
 ├── llm/
-│   └── __init__.py      # Toxicity, Hallucination, Relevancy
+│   └── __init__.py      # Toxicity, Hallucination, Bias, Coherence (15+ metrics)
 ├── rag/
-│   └── __init__.py      # Context Relevance, Groundedness
+│   └── __init__.py      # Context Relevance, Groundedness, Attribution (15+ metrics)
 ├── fairness/
-│   └── __init__.py      # Demographic Parity, Equalized Odds
+│   └── __init__.py      # Demographic Parity, Equalized Odds (10+ metrics)
 ├── speech/
-│   └── __init__.py      # WER, CER, MER
+│   └── __init__.py      # WER, CER, MER, SER, MOS (20+ metrics)
 ├── recommender/
-│   └── __init__.py      # Precision@K, NDCG, MAP
+│   └── __init__.py      # Precision@K, NDCG, MAP, Serendipity (25+ metrics)
 └── utils/
-    ├── math_ops.py      # Mathematical operations
+    ├── math_ops.py      # Mathematical operations + Statistical tests
     ├── text_ops.py      # Text processing utilities
-    └── data_ops.py      # Data manipulation utilities
+    ├── data_ops.py      # Data manipulation utilities
+    └── viz_ops.py       # ASCII visualizations (Confusion matrix, charts, sparklines)
 ```
 
 ## 🎯 Metric Classes
