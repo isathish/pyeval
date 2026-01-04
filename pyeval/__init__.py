@@ -65,6 +65,18 @@ from pyeval.ml import (
     completeness_score as cluster_completeness_score,
     v_measure_score,
     fowlkes_mallows_score,
+    # TPR/FPR
+    true_positive_rate,
+    false_positive_rate,
+    # Additional classification metrics
+    specificity_score,
+    matthews_corrcoef,
+    cohen_kappa_score,
+    roc_curve,
+    precision_recall_curve,
+    # Additional regression metrics
+    mean_absolute_percentage_error,
+    explained_variance_score,
 )
 
 from pyeval.nlp import (
@@ -82,6 +94,9 @@ from pyeval.nlp import (
     word_mover_distance_approx,
     lexical_diversity,
     sentence_bleu,
+    # TER and Distinct-N
+    ter_score,
+    distinct_n,
 )
 
 from pyeval.llm import (
@@ -100,6 +115,8 @@ from pyeval.llm import (
     multi_turn_coherence,
     summarization_quality,
     response_diversity,
+    # Consistency score
+    consistency_score,
 )
 
 from pyeval.rag import (
@@ -119,6 +136,12 @@ from pyeval.rag import (
     context_utilization,
     question_answer_relevance,
     rag_pipeline_score,
+    # Context coverage and faithful answer rate
+    context_coverage,
+    faithful_answer_rate,
+    # Retrieval metrics
+    retrieval_f1,
+    mean_reciprocal_rank as retrieval_mrr,
 )
 
 from pyeval.fairness import (
@@ -132,6 +155,9 @@ from pyeval.fairness import (
     counterfactual_fairness_check,
     comprehensive_fairness_analysis,
     FairnessMetrics,
+    # TPR/FPR difference
+    true_positive_rate_difference,
+    false_positive_rate_difference,
 )
 
 from pyeval.speech import (
@@ -427,6 +453,18 @@ __all__ = [
     "cluster_completeness_score",
     "v_measure_score",
     "fowlkes_mallows_score",
+    # TPR/FPR
+    "true_positive_rate",
+    "false_positive_rate",
+    # Additional classification metrics
+    "specificity_score",
+    "matthews_corrcoef",
+    "cohen_kappa_score",
+    "roc_curve",
+    "precision_recall_curve",
+    # Additional regression metrics
+    "mean_absolute_percentage_error",
+    "explained_variance_score",
     
     # NLP Metrics
     "bleu_score",
@@ -443,6 +481,9 @@ __all__ = [
     "word_mover_distance_approx",
     "lexical_diversity",
     "sentence_bleu",
+    # TER and Distinct-N
+    "ter_score",
+    "distinct_n",
     
     # LLM Metrics
     "hallucination_score",
@@ -460,6 +501,8 @@ __all__ = [
     "multi_turn_coherence",
     "summarization_quality",
     "response_diversity",
+    # Consistency score
+    "consistency_score",
     
     # RAG Metrics
     "context_relevance",
@@ -478,6 +521,12 @@ __all__ = [
     "context_utilization",
     "question_answer_relevance",
     "rag_pipeline_score",
+    # Context coverage and faithful answer rate
+    "context_coverage",
+    "faithful_answer_rate",
+    # Retrieval metrics
+    "retrieval_f1",
+    "retrieval_mrr",
     
     # Fairness Metrics
     "demographic_parity",
@@ -490,6 +539,9 @@ __all__ = [
     "counterfactual_fairness_check",
     "comprehensive_fairness_analysis",
     "FairnessMetrics",
+    # TPR/FPR difference
+    "true_positive_rate_difference",
+    "false_positive_rate_difference",
     
     # Speech Metrics
     "word_error_rate",

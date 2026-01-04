@@ -583,3 +583,69 @@ class FairnessMetrics:
         di_score = min(1.0, self.di_ratio / 0.8)  # Normalized to 80% rule
         
         return (dp_score + eo_score + di_score) / 3
+
+
+# =============================================================================
+# True Positive Rate Difference
+# =============================================================================
+
+def true_positive_rate_difference(y_true: List[int], y_pred: List[int],
+                                   sensitive_features: List[Any],
+                                   favorable_outcome: int = 1) -> float:
+    """
+    Calculate the difference in True Positive Rates between groups.
+    
+    TPR Difference = max(TPR) - min(TPR) across groups
+    
+    A value closer to 0 indicates more fairness.
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        sensitive_features: Group membership for each sample
+        favorable_outcome: Value representing favorable outcome
+        
+    Returns:
+        TPR difference (0 = perfectly fair)
+        
+    Example:
+        >>> y_true = [1, 0, 1, 1, 0, 0, 1, 0]
+        >>> y_pred = [1, 0, 1, 0, 0, 1, 1, 0]
+        >>> groups = ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']
+        >>> true_positive_rate_difference(y_true, y_pred, groups)
+    """
+    eo_result = equalized_odds(y_true, y_pred, sensitive_features, favorable_outcome)
+    return eo_result['tpr_difference']
+
+
+# =============================================================================
+# False Positive Rate Difference
+# =============================================================================
+
+def false_positive_rate_difference(y_true: List[int], y_pred: List[int],
+                                    sensitive_features: List[Any],
+                                    favorable_outcome: int = 1) -> float:
+    """
+    Calculate the difference in False Positive Rates between groups.
+    
+    FPR Difference = max(FPR) - min(FPR) across groups
+    
+    A value closer to 0 indicates more fairness.
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        sensitive_features: Group membership for each sample
+        favorable_outcome: Value representing favorable outcome
+        
+    Returns:
+        FPR difference (0 = perfectly fair)
+        
+    Example:
+        >>> y_true = [1, 0, 1, 1, 0, 0, 1, 0]
+        >>> y_pred = [1, 0, 1, 0, 0, 1, 1, 0]
+        >>> groups = ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']
+        >>> false_positive_rate_difference(y_true, y_pred, groups)
+    """
+    eo_result = equalized_odds(y_true, y_pred, sensitive_features, favorable_outcome)
+    return eo_result['fpr_difference']

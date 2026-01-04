@@ -8,19 +8,29 @@ from pyeval.ml import (
     jaccard_score, top_k_accuracy, expected_calibration_error,
     mean_squared_log_error, symmetric_mape, huber_loss, quantile_loss,
     normalized_rmse, adjusted_rand_score, normalized_mutual_info_score,
-    homogeneity_score, completeness_score, v_measure_score, fowlkes_mallows_score
+    homogeneity_score, completeness_score, v_measure_score, fowlkes_mallows_score,
+    true_positive_rate, false_positive_rate,
+    # Additional exports
+    specificity_score, matthews_corrcoef, cohen_kappa_score, roc_curve,
+    precision_recall_curve, mean_absolute_percentage_error, explained_variance_score
 )
 from pyeval.nlp import (
     chrf_score, text_entropy, repetition_ratio, compression_ratio,
-    coverage_score, density_score, lexical_diversity, sentence_bleu
+    coverage_score, density_score, lexical_diversity, sentence_bleu,
+    # Additional exports
+    ter_score, distinct_n
 )
 from pyeval.llm import (
     bias_detection, instruction_following_score, multi_turn_coherence,
-    summarization_quality, response_diversity
+    summarization_quality, response_diversity, consistency_score
 )
 from pyeval.rag import (
     context_entity_recall, answer_attribution, context_utilization,
-    question_answer_relevance, rag_pipeline_score
+    question_answer_relevance, rag_pipeline_score, context_coverage,
+    faithful_answer_rate, retrieval_f1
+)
+from pyeval.fairness import (
+    true_positive_rate_difference, false_positive_rate_difference
 )
 from pyeval.speech import (
     slot_error_rate, intent_accuracy, phoneme_error_rate,
@@ -373,3 +383,227 @@ class TestVisualizationUtilities:
         result = progress_bar(50, 100)
         assert '50.0%' in result
         assert '█' in result
+
+
+class TestTPRFPR:
+    """Tests for True Positive Rate and False Positive Rate."""
+    
+    def test_true_positive_rate(self):
+        y_true = [1, 0, 1, 1, 0, 1]
+        y_pred = [1, 0, 0, 1, 0, 1]
+        result = true_positive_rate(y_true, y_pred)
+        # TPR = TP / (TP + FN) = 3 / (3 + 1) = 0.75
+        assert 0.74 <= result <= 0.76
+    
+    def test_false_positive_rate(self):
+        y_true = [1, 0, 1, 1, 0, 1]
+        y_pred = [1, 1, 0, 1, 0, 1]
+        result = false_positive_rate(y_true, y_pred)
+        # FPR = FP / (FP + TN) = 1 / (1 + 1) = 0.5
+        assert 0.49 <= result <= 0.51
+    
+    def test_tpr_perfect_recall(self):
+        y_true = [1, 1, 1, 1]
+        y_pred = [1, 1, 1, 1]
+        result = true_positive_rate(y_true, y_pred)
+        assert result == 1.0
+    
+    def test_fpr_no_false_positives(self):
+        y_true = [0, 0, 0, 0]
+        y_pred = [0, 0, 0, 0]
+        result = false_positive_rate(y_true, y_pred)
+        assert result == 0.0
+
+
+class TestConsistencyScore:
+    """Tests for LLM consistency score."""
+    
+    def test_consistency_score_similar_responses(self):
+        responses = [
+            "Python was created by Guido van Rossum in 1991.",
+            "Python was created by Guido van Rossum in the year 1991.",
+            "Guido van Rossum created Python in 1991."
+        ]
+        result = consistency_score(responses)
+        assert 'consistency' in result
+        assert result['consistency'] > 0.5  # Should be reasonably consistent
+    
+    def test_consistency_score_different_responses(self):
+        responses = [
+            "Python was created in 1991.",
+            "Java is a programming language.",
+            "The weather is nice today."
+        ]
+        result = consistency_score(responses)
+        assert 'consistency' in result
+        assert result['consistency'] < 0.5  # Should be inconsistent
+    
+    def test_consistency_score_single_response(self):
+        responses = ["Only one response"]
+        result = consistency_score(responses)
+        assert result['consistency'] == 1.0
+
+
+class TestContextCoverage:
+    """Tests for RAG context coverage."""
+    
+    def test_context_coverage_full(self):
+        question = "What is Python and who created it?"
+        contexts = [
+            "Python is a programming language.",
+            "Python was created by Guido van Rossum."
+        ]
+        result = context_coverage(question, contexts)
+        assert 'coverage' in result
+        assert result['coverage'] > 0.5
+    
+    def test_context_coverage_partial(self):
+        question = "What is Python and who created it?"
+        contexts = ["Python is a programming language."]  # Missing creator info
+        result = context_coverage(question, contexts)
+        assert 'coverage' in result
+        assert result['question_term_coverage'] > 0
+    
+    def test_context_coverage_empty(self):
+        question = "What is Python?"
+        contexts = []
+        result = context_coverage(question, contexts)
+        assert result['coverage'] == 0.0
+    
+    def test_context_coverage_with_aspects(self):
+        question = "What is machine learning?"
+        contexts = ["Machine learning is a type of artificial intelligence."]
+        result = context_coverage(question, contexts, required_aspects=["AI", "algorithms"])
+        assert 'covered_aspects' in result
+        assert 'missing_aspects' in result
+
+
+class TestFaithfulAnswerRate:
+    """Tests for RAG faithful answer rate."""
+    
+    def test_faithful_answer_rate_all_faithful(self):
+        answers = [
+            "Python was created by Guido.",
+            "Python is a programming language."
+        ]
+        contexts_list = [
+            ["Python was created by Guido van Rossum."],
+            ["Python is a popular programming language."]
+        ]
+        result = faithful_answer_rate(answers, contexts_list)
+        assert 'faithful_rate' in result
+        assert result['faithful_rate'] > 0.5
+    
+    def test_faithful_answer_rate_mixed(self):
+        answers = [
+            "Python was created by Guido.",
+            "Python is the fastest language in the world."  # Not supported
+        ]
+        contexts_list = [
+            ["Python was created by Guido van Rossum."],
+            ["Python is a programming language."]  # No speed claim
+        ]
+        result = faithful_answer_rate(answers, contexts_list)
+        assert 'faithful_rate' in result
+        assert result['total_answers'] == 2
+    
+    def test_faithful_answer_rate_empty(self):
+        result = faithful_answer_rate([], [])
+        assert result['faithful_rate'] == 0.0
+        assert result['total_answers'] == 0
+    
+    def test_faithful_answer_rate_mismatched_lengths(self):
+        with pytest.raises(ValueError):
+            faithful_answer_rate(["answer"], [["ctx1"], ["ctx2"]])
+
+
+class TestAdditionalMLMetrics:
+    """Tests for additional ML metrics exports."""
+    
+    def test_specificity_score(self):
+        y_true = [1, 0, 1, 0, 1, 0]
+        y_pred = [1, 0, 1, 1, 1, 0]
+        result = specificity_score(y_true, y_pred)
+        # TN = 2, FP = 1, Specificity = TN / (TN + FP) = 2/3
+        assert 0.6 <= result <= 0.7
+    
+    def test_matthews_corrcoef(self):
+        y_true = [1, 0, 1, 1, 0, 1]
+        y_pred = [1, 0, 1, 0, 0, 1]
+        result = matthews_corrcoef(y_true, y_pred)
+        assert -1 <= result <= 1
+    
+    def test_cohen_kappa_score(self):
+        y_true = [1, 0, 1, 1, 0, 1]
+        y_pred = [1, 0, 1, 0, 0, 1]
+        result = cohen_kappa_score(y_true, y_pred)
+        assert -1 <= result <= 1
+    
+    def test_roc_curve(self):
+        y_true = [0, 0, 1, 1]
+        y_scores = [0.1, 0.4, 0.35, 0.8]
+        fpr, tpr, thresholds = roc_curve(y_true, y_scores)
+        assert len(fpr) == len(tpr) == len(thresholds)
+        assert fpr[0] == 0.0 and tpr[0] == 0.0
+    
+    def test_precision_recall_curve(self):
+        y_true = [0, 0, 1, 1]
+        y_scores = [0.1, 0.4, 0.35, 0.8]
+        precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
+        assert len(precision) == len(recall) == len(thresholds)
+    
+    def test_mean_absolute_percentage_error(self):
+        y_true = [100, 200, 300]
+        y_pred = [110, 190, 330]
+        result = mean_absolute_percentage_error(y_true, y_pred)
+        assert result >= 0
+    
+    def test_explained_variance_score(self):
+        y_true = [3, -0.5, 2, 7]
+        y_pred = [2.5, 0.0, 2, 8]
+        result = explained_variance_score(y_true, y_pred)
+        assert 0 <= result <= 1
+
+
+class TestAdditionalNLPMetrics:
+    """Tests for additional NLP metrics exports."""
+    
+    def test_ter_score(self):
+        reference = "the cat sat on the mat"
+        candidate = "the cat is on the mat"
+        result = ter_score(reference, candidate)
+        assert 'ter' in result
+        assert result['ter'] >= 0
+    
+    def test_distinct_n(self):
+        texts = ["hello world hello", "world hello world"]
+        result = distinct_n(texts, n=1)
+        assert 0 <= result <= 1
+
+
+class TestAdditionalRAGMetrics:
+    """Tests for additional RAG metrics exports."""
+    
+    def test_retrieval_f1(self):
+        retrieved = ["doc1", "doc2", "doc3"]
+        relevant = ["doc1", "doc3", "doc5"]
+        result = retrieval_f1(retrieved, relevant)
+        assert 0 <= result <= 1
+
+
+class TestFairnessRateDifferences:
+    """Tests for fairness TPR/FPR difference metrics."""
+    
+    def test_true_positive_rate_difference(self):
+        y_true = [1, 0, 1, 1, 0, 0, 1, 0]
+        y_pred = [1, 0, 1, 0, 0, 1, 1, 0]
+        groups = ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']
+        result = true_positive_rate_difference(y_true, y_pred, groups)
+        assert 0 <= result <= 1
+    
+    def test_false_positive_rate_difference(self):
+        y_true = [1, 0, 1, 1, 0, 0, 1, 0]
+        y_pred = [1, 0, 1, 0, 0, 1, 1, 0]
+        groups = ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']
+        result = false_positive_rate_difference(y_true, y_pred, groups)
+        assert 0 <= result <= 1

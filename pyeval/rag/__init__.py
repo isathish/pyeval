@@ -1017,3 +1017,169 @@ class RAGMetrics:
                    for metric, weight in weights.items())
         
         return score
+
+
+# =============================================================================
+# Context Coverage
+# =============================================================================
+
+def context_coverage(question: str, contexts: List[str], 
+                     required_aspects: Optional[List[str]] = None) -> Dict[str, Any]:
+    """
+    Measure how well the retrieved contexts cover the information needed to answer the question.
+    
+    Args:
+        question: User question
+        contexts: Retrieved context passages
+        required_aspects: Optional list of required information aspects
+        
+    Returns:
+        Dictionary with coverage metrics
+        
+    Example:
+        >>> q = "What is Python and who created it?"
+        >>> contexts = ["Python is a programming language.", "Python was created by Guido."]
+        >>> result = context_coverage(q, contexts)
+        >>> result['coverage']
+    """
+    if not contexts:
+        return {
+            'coverage': 0.0,
+            'question_term_coverage': 0.0,
+            'aspect_coverage': 0.0,
+            'covered_aspects': [],
+            'missing_aspects': []
+        }
+    
+    combined_context = ' '.join(contexts)
+    context_tokens = set(tokenize(combined_context, lowercase=True, remove_punct=True))
+    context_tokens -= STOPWORDS
+    
+    # Question term coverage
+    q_tokens = set(tokenize(question, lowercase=True, remove_punct=True))
+    q_tokens -= STOPWORDS
+    # Remove question words
+    q_tokens -= {'what', 'who', 'when', 'where', 'why', 'how', 'which', 'is', 'are', 'do', 'does', 'can'}
+    
+    if q_tokens:
+        question_term_coverage = len(q_tokens & context_tokens) / len(q_tokens)
+    else:
+        question_term_coverage = 1.0
+    
+    # Aspect coverage (if required aspects provided)
+    covered_aspects = []
+    missing_aspects = []
+    
+    if required_aspects:
+        for aspect in required_aspects:
+            aspect_tokens = set(tokenize(aspect, lowercase=True, remove_punct=True))
+            aspect_tokens -= STOPWORDS
+            
+            # Check if aspect is covered in any context
+            aspect_found = False
+            for ctx in contexts:
+                ctx_tokens = set(tokenize(ctx, lowercase=True, remove_punct=True))
+                if aspect_tokens and aspect_tokens & ctx_tokens:
+                    overlap = len(aspect_tokens & ctx_tokens) / len(aspect_tokens)
+                    if overlap >= 0.3:
+                        aspect_found = True
+                        break
+            
+            if aspect_found:
+                covered_aspects.append(aspect)
+            else:
+                missing_aspects.append(aspect)
+        
+        aspect_coverage = len(covered_aspects) / len(required_aspects)
+    else:
+        aspect_coverage = 1.0
+    
+    # Entity coverage from question
+    q_entities = set(re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', question))
+    ctx_entities = set(re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', combined_context))
+    
+    if q_entities:
+        entity_coverage = len(q_entities & ctx_entities) / len(q_entities)
+    else:
+        entity_coverage = 1.0
+    
+    # Overall coverage
+    coverage = (question_term_coverage * 0.4 + aspect_coverage * 0.3 + entity_coverage * 0.3)
+    
+    return {
+        'coverage': coverage,
+        'question_term_coverage': question_term_coverage,
+        'aspect_coverage': aspect_coverage,
+        'entity_coverage': entity_coverage,
+        'covered_aspects': covered_aspects,
+        'missing_aspects': missing_aspects
+    }
+
+
+# =============================================================================
+# Faithful Answer Rate
+# =============================================================================
+
+def faithful_answer_rate(answers: List[str], contexts_list: List[List[str]],
+                         threshold: float = 0.5) -> Dict[str, Any]:
+    """
+    Calculate the rate of faithful answers across multiple QA pairs.
+    
+    Measures what percentage of generated answers are faithful to their contexts.
+    
+    Args:
+        answers: List of generated answers
+        contexts_list: List of context lists (one per answer)
+        threshold: Faithfulness threshold for considering an answer faithful
+        
+    Returns:
+        Dictionary with faithful answer rate metrics
+        
+    Example:
+        >>> answers = ["Python was created by Guido.", "Python is fast."]
+        >>> contexts = [
+        ...     ["Python was created by Guido van Rossum."],
+        ...     ["Python is a programming language."]  # No claim about speed
+        ... ]
+        >>> result = faithful_answer_rate(answers, contexts)
+        >>> result['faithful_rate']
+    """
+    if len(answers) != len(contexts_list):
+        raise ValueError("Number of answers must match number of context lists")
+    
+    if not answers:
+        return {
+            'faithful_rate': 0.0,
+            'total_answers': 0,
+            'faithful_count': 0,
+            'unfaithful_count': 0,
+            'per_answer': []
+        }
+    
+    faithful_count = 0
+    per_answer = []
+    
+    for i, (answer, contexts) in enumerate(zip(answers, contexts_list)):
+        faith_result = rag_faithfulness(answer, contexts)
+        faithfulness = faith_result['faithfulness']
+        
+        is_faithful = faithfulness >= threshold
+        if is_faithful:
+            faithful_count += 1
+        
+        per_answer.append({
+            'index': i,
+            'faithfulness': faithfulness,
+            'is_faithful': is_faithful
+        })
+    
+    faithful_rate = faithful_count / len(answers)
+    
+    return {
+        'faithful_rate': faithful_rate,
+        'total_answers': len(answers),
+        'faithful_count': faithful_count,
+        'unfaithful_count': len(answers) - faithful_count,
+        'average_faithfulness': mean([p['faithfulness'] for p in per_answer]),
+        'per_answer': per_answer
+    }
