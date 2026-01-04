@@ -347,6 +347,64 @@ def cohen_kappa_score(y_true: List[Any], y_pred: List[Any]) -> float:
     return (po - pe) / (1 - pe)
 
 
+def true_positive_rate(y_true: List[int], y_pred: List[int], 
+                       pos_label: int = 1) -> float:
+    """
+    Calculate True Positive Rate (TPR), also known as Sensitivity or Recall.
+    
+    TPR = TP / (TP + FN)
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        pos_label: Positive class label
+        
+    Returns:
+        True positive rate (0 to 1)
+        
+    Example:
+        >>> true_positive_rate([1, 0, 1, 1], [1, 0, 0, 1])
+        0.6666666666666666
+    """
+    check_consistent_length(y_true, y_pred)
+    
+    tp = sum(1 for t, p in zip(y_true, y_pred) if t == pos_label and p == pos_label)
+    fn = sum(1 for t, p in zip(y_true, y_pred) if t == pos_label and p != pos_label)
+    
+    if tp + fn == 0:
+        return 0.0
+    return tp / (tp + fn)
+
+
+def false_positive_rate(y_true: List[int], y_pred: List[int],
+                        pos_label: int = 1) -> float:
+    """
+    Calculate False Positive Rate (FPR), also known as Fall-out.
+    
+    FPR = FP / (FP + TN)
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        pos_label: Positive class label
+        
+    Returns:
+        False positive rate (0 to 1)
+        
+    Example:
+        >>> false_positive_rate([1, 0, 1, 1], [1, 1, 0, 1])
+        0.5
+    """
+    check_consistent_length(y_true, y_pred)
+    
+    fp = sum(1 for t, p in zip(y_true, y_pred) if t != pos_label and p == pos_label)
+    tn = sum(1 for t, p in zip(y_true, y_pred) if t != pos_label and p != pos_label)
+    
+    if fp + tn == 0:
+        return 0.0
+    return fp / (fp + tn)
+
+
 def balanced_accuracy_score(y_true: List[int], y_pred: List[int], 
                             adjusted: bool = False) -> float:
     """

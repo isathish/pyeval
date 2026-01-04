@@ -573,6 +573,108 @@ def coherence_score(text: str) -> Dict[str, float]:
 
 
 # =============================================================================
+# Consistency Score
+# =============================================================================
+
+def consistency_score(responses: List[str], question: Optional[str] = None) -> Dict[str, float]:
+    """
+    Calculate consistency score across multiple responses to the same prompt.
+    
+    Measures how consistent the model's responses are when asked the same question.
+    
+    Args:
+        responses: Multiple responses to the same prompt
+        question: Original question/prompt (optional, for context)
+        
+    Returns:
+        Dictionary with consistency metrics
+        
+    Example:
+        >>> responses = [
+        ...     "Python was created in 1991.",
+        ...     "Python was created in 1991 by Guido van Rossum.",
+        ...     "Python was invented in 1991."
+        ... ]
+        >>> result = consistency_score(responses)
+        >>> result['consistency']  # Higher = more consistent
+    """
+    if len(responses) < 2:
+        return {
+            'consistency': 1.0,
+            'factual_consistency': 1.0,
+            'semantic_similarity': 1.0,
+            'lexical_overlap': 1.0
+        }
+    
+    # Tokenize all responses
+    response_tokens = [
+        set(tokenize(r, lowercase=True, remove_punct=True)) - STOPWORDS 
+        for r in responses
+    ]
+    
+    # Lexical overlap (Jaccard similarity across all pairs)
+    lexical_scores = []
+    for i in range(len(responses)):
+        for j in range(i + 1, len(responses)):
+            if response_tokens[i] and response_tokens[j]:
+                jaccard = len(response_tokens[i] & response_tokens[j]) / len(response_tokens[i] | response_tokens[j])
+                lexical_scores.append(jaccard)
+    
+    lexical_overlap = mean(lexical_scores) if lexical_scores else 0.0
+    
+    # Semantic similarity using text_similarity
+    semantic_scores = []
+    for i in range(len(responses)):
+        for j in range(i + 1, len(responses)):
+            sim = text_similarity(responses[i], responses[j], method='jaccard')
+            semantic_scores.append(sim)
+    
+    semantic_similarity = mean(semantic_scores) if semantic_scores else 0.0
+    
+    # Factual consistency - check for contradicting facts
+    # Extract numbers, dates, proper nouns from each response
+    def extract_facts(text: str) -> Set[str]:
+        facts = set()
+        # Numbers
+        facts.update(re.findall(r'\b\d+(?:\.\d+)?\b', text))
+        # Dates
+        facts.update(re.findall(r'\b\d{4}\b', text))
+        facts.update(re.findall(r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d+', text))
+        # Proper nouns (capitalized words)
+        facts.update(re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', text))
+        return facts
+    
+    response_facts = [extract_facts(r) for r in responses]
+    
+    # Measure fact agreement
+    if any(response_facts):
+        all_facts = set().union(*response_facts)
+        if all_facts:
+            fact_agreement_scores = []
+            for i in range(len(responses)):
+                for j in range(i + 1, len(responses)):
+                    common_facts = response_facts[i] & response_facts[j]
+                    all_pair_facts = response_facts[i] | response_facts[j]
+                    if all_pair_facts:
+                        fact_agreement_scores.append(len(common_facts) / len(all_pair_facts))
+            factual_consistency = mean(fact_agreement_scores) if fact_agreement_scores else 0.5
+        else:
+            factual_consistency = 1.0
+    else:
+        factual_consistency = 1.0
+    
+    # Overall consistency
+    consistency = (factual_consistency * 0.4 + semantic_similarity * 0.35 + lexical_overlap * 0.25)
+    
+    return {
+        'consistency': consistency,
+        'factual_consistency': factual_consistency,
+        'semantic_similarity': semantic_similarity,
+        'lexical_overlap': lexical_overlap
+    }
+
+
+# =============================================================================
 # Completeness
 # =============================================================================
 
