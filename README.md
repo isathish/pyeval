@@ -18,6 +18,18 @@ PyEval is a complete evaluation library for Machine Learning, NLP, LLM, RAG, Fai
 | **Speech** | WER, CER, MER, WIL, SER |
 | **Recommender** | Precision@K, Recall@K, NDCG, MAP, Hit Rate, MRR |
 
+### 🛠️ Advanced Features
+
+| Feature | Description |
+|---------|-------------|
+| **Design Patterns** | Strategy, Factory, Builder, Observer, Composite, Chain of Responsibility |
+| **Decorators** | @timed, @memoize, @lru_cache, @retry, @fallback, @logged, @deprecated |
+| **Validators** | Type, List, Numeric, Schema validators with composition |
+| **Callbacks** | Progress, Threshold alerts, History tracking, Early stopping |
+| **Pipelines** | Fluent API for building evaluation workflows |
+| **Functional** | Result/Option monads, curry, compose, pipe, higher-order functions |
+| **Aggregators** | Statistical, Cross-validation, Ensemble aggregation |
+
 ## 🚀 Installation
 
 ```bash
@@ -200,13 +212,234 @@ print(tracker.compare_runs())
 best = tracker.get_best_run("accuracy")
 ```
 
+## �️ Advanced Features
+
+### Decorators
+
+```python
+from pyeval import timed, memoize, require_same_length, retry, logged
+
+# Time function execution
+@timed
+def compute_metrics(data):
+    return process(data)
+
+# Cache results
+@memoize
+def expensive_metric(y_true, y_pred):
+    return complex_computation(y_true, y_pred)
+
+# Validate inputs
+@require_same_length
+def accuracy(y_true, y_pred):
+    return sum(1 for t, p in zip(y_true, y_pred) if t == p) / len(y_true)
+
+# Retry on failure
+@retry(max_attempts=3, delay=0.1)
+def flaky_operation():
+    return external_api_call()
+
+# Log function calls
+@logged
+def tracked_metric(y_true, y_pred):
+    return compute(y_true, y_pred)
+```
+
+### Design Patterns - Strategy Pattern
+
+```python
+from pyeval import MetricCalculator, AccuracyStrategy, F1Strategy
+
+calculator = MetricCalculator(AccuracyStrategy())
+accuracy = calculator.calculate(y_true, y_pred)
+
+# Switch strategy
+calculator.set_strategy(F1Strategy())
+f1 = calculator.calculate(y_true, y_pred)
+```
+
+### Design Patterns - Factory Pattern
+
+```python
+from pyeval import MetricFactory, MetricType
+
+factory = MetricFactory()
+metric = factory.create(MetricType.ACCURACY)
+score = metric.compute(y_true, y_pred)
+```
+
+### Design Patterns - Composite Pattern
+
+```python
+from pyeval import CompositeMetric, SingleMetric
+
+# Compose multiple metrics
+classification_metrics = CompositeMetric('classification')
+classification_metrics.add(SingleMetric('accuracy', accuracy_score))
+classification_metrics.add(SingleMetric('f1', f1_score))
+
+# Compute all at once
+results = classification_metrics.compute(y_true, y_pred)
+# {'accuracy': 0.95, 'f1': 0.92}
+```
+
+### Validators
+
+```python
+from pyeval import (
+    validate_predictions, validate_probabilities,
+    TypeValidator, ListValidator, SchemaValidator, FieldSchema
+)
+
+# Quick validation
+validate_predictions(y_true, y_pred)  # Raises if invalid
+validate_probabilities([0.1, 0.3, 0.6], require_sum_one=True)
+
+# Composable validators
+validator = ListValidator(element_type=int, min_length=1, max_length=100)
+result = validator.validate([1, 2, 3])
+if result.is_valid:
+    print("Valid!")
+
+# Schema validation
+schema = SchemaValidator([
+    FieldSchema('y_true', ListValidator(min_length=1)),
+    FieldSchema('threshold', NumericValidator(0, 1), required=False, default=0.5)
+])
+```
+
+### Callbacks
+
+```python
+from pyeval import (
+    CallbackManager, LoggingCallback, ProgressCallback,
+    ThresholdCallback, HistoryCallback, EarlyStoppingCallback
+)
+
+# Progress tracking
+progress = ProgressCallback(total_metrics=5, show_bar=True)
+
+# Threshold alerts
+threshold = ThresholdCallback({
+    'accuracy': {'min': 0.8},
+    'loss': {'max': 0.5}
+})
+
+# History recording
+history = HistoryCallback()
+
+# Early stopping
+early_stop = EarlyStoppingCallback(metric='loss', mode='min', patience=5)
+```
+
+### Pipelines
+
+```python
+from pyeval import Pipeline, create_classification_pipeline
+
+# Fluent pipeline builder
+pipeline = (
+    Pipeline()
+    .validate(lambda x: len(x[0]) == len(x[1]), "Length mismatch")
+    .add_metric('accuracy', accuracy_score)
+    .add_metric('f1', f1_score)
+    .aggregate('mean', lambda r: sum(r.values()) / len(r))
+)
+
+results = pipeline.run(y_true, y_pred)
+
+# Or use presets
+classification_pipeline = create_classification_pipeline()
+results = classification_pipeline.run(y_true, y_pred)
+```
+
+### Functional Utilities
+
+```python
+from pyeval import (
+    Result, Option, curry, compose, pipe,
+    combine_metrics, threshold_metric, average_metric
+)
+
+# Result monad for error handling
+def safe_divide(a, b) -> Result:
+    if b == 0:
+        return Result.failure("Division by zero")
+    return Result.success(a / b)
+
+result = safe_divide(10, 2)
+if result.is_success:
+    print(result.value)  # 5.0
+
+# Option monad for nullable values
+opt = Option.from_nullable(get_metric("accuracy"))
+value = opt.map(lambda x: x * 100).get_or_else(0)
+
+# Function composition
+process = compose(str, lambda x: x + 1, lambda x: x * 2)
+result = process(5)  # "11"
+
+# Currying
+@curry
+def add(a, b, c):
+    return a + b + c
+
+add(1)(2)(3)  # 6
+
+# Combine metrics
+combined = combine_metrics(accuracy_score, f1_score)
+results = combined(y_true, y_pred)
+# {'accuracy_score': 0.95, 'f1_score': 0.92}
+
+# Threshold check
+high_accuracy = threshold_metric(accuracy_score, 0.9)
+is_high = high_accuracy(y_true, y_pred)  # True/False
+```
+
+### Aggregators
+
+```python
+from pyeval import (
+    MetricAggregator, CrossValidationAggregator, EnsembleAggregator,
+    MeanAggregator, MedianAggregator, PercentileAggregator
+)
+
+# Multi-metric aggregation
+aggregator = MetricAggregator()
+for fold_results in cross_val_results:
+    aggregator.add_results(fold_results)
+stats = aggregator.get_statistics()
+
+# Cross-validation
+cv = CrossValidationAggregator(n_folds=5)
+for fold_idx, (y_true, y_pred) in enumerate(cv_splits):
+    cv.add_fold_result(fold_idx, {
+        'accuracy': accuracy_score(y_true, y_pred),
+        'f1': f1_score(y_true, y_pred)
+    })
+print(cv.summary_table())
+
+# Ensemble aggregation
+ensemble = EnsembleAggregator(strategy='majority_vote')
+ensemble.add_predictions('model1', predictions1)
+ensemble.add_predictions('model2', predictions2)
+final_predictions = ensemble.aggregate()
+```
+
 ## 📁 Package Structure
 
 ```
 pyeval/
-├── __init__.py          # Main package exports
+├── __init__.py          # Main package exports (200+ exports)
 ├── evaluator.py         # Unified Evaluator & Report
 ├── tracking.py          # Experiment Tracking
+├── decorators.py        # @timed, @memoize, @retry, @logged, etc.
+├── patterns.py          # Strategy, Factory, Builder, Observer patterns
+├── validators.py        # Type, Schema, Prediction validators
+├── callbacks.py         # Progress, Threshold, History callbacks
+├── pipeline.py          # Fluent pipeline builder
+├── functional.py        # Result/Option monads, curry, compose
+├── aggregators.py       # Statistical, CV, Ensemble aggregators
 ├── ml/
 │   └── __init__.py      # Classification, Regression, Clustering
 ├── nlp/
@@ -243,11 +476,11 @@ Each domain provides a convenience class for computing all metrics at once:
 | `SpeechMetrics` | Speech recognition |
 | `RecommenderMetrics` | Recommendation systems |
 
-## 🧪 Running Examples
+## 🧪 Running Tests
 
 ```bash
 cd pyeval
-python examples/basic_usage.py
+python -m pytest tests/ -v
 ```
 
 ## 📄 License
