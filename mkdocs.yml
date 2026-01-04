@@ -1,0 +1,102 @@
+site_name: PyEval Documentation
+site_description: A comprehensive pure Python evaluation framework for ML, NLP, LLM, RAG, Fairness, Speech, and Recommender systems
+site_author: PyEval Team
+site_url: https://yourusername.github.io/pyeval
+
+repo_name: yourusername/pyeval
+repo_url: https://github.com/yourusername/pyeval
+
+copyright: Copyright &copy; 2024-2026 PyEval Team
+
+theme:
+  name: material
+  features:
+  - navigation.tabs
+  - navigation.sections
+  - navigation.expand
+  - navigation.top
+  - search.suggest
+  - search.highlight
+  - content.tabs.link
+  - content.code.copy
+  - content.code.annotate
+  language: en
+  palette:
+  - scheme: default
+    primary: indigo
+    accent: indigo
+    toggle:
+      icon: material/brightness-7
+      name: Switch to dark mode
+  - scheme: slate
+    primary: indigo
+    accent: indigo
+    toggle:
+      icon: material/brightness-4
+      name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    logo: material/chart-bar
+
+plugins:
+- search:
+    separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+- minify:
+    minify_html: true
+
+extra:
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/yourusername/pyeval
+  - icon: fontawesome/brands/python
+    link: https://pypi.org/project/pyeval/
+
+markdown_extensions:
+- pymdownx.highlight:
+    anchor_linenums: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- admonition
+- pymdownx.arithmatex:
+    generic: true
+- footnotes
+- pymdownx.details
+- pymdownx.superfences
+- pymdownx.mark
+- attr_list
+- pymdownx.emoji:
+    emoji_index: !!python/name:material.extensions.emoji.twemoji ""
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg ""
+- md_in_html
+- pymdownx.tabbed:
+    alternate_style: true
+- tables
+- toc:
+    permalink: true
+
+nav:
+- Home: index.md
+- Getting Started: getting-started.md
+- API Reference:
+  - ML Metrics: api/ml.md
+  - NLP Metrics: api/nlp.md
+  - LLM Metrics: api/llm.md
+  - RAG Metrics: api/rag.md
+  - Fairness Metrics: api/fairness.md
+  - Speech Metrics: api/speech.md
+  - Recommender Metrics: api/recommender.md
+  - Statistical Utilities: api/statistical.md
+  - Visualization: api/visualization.md
+- Advanced:
+  - Design Patterns: advanced/patterns.md
+  - Decorators: advanced/decorators.md
+  - Validators: advanced/validators.md
+  - Pipelines: advanced/pipelines.md
+  - Functional Utilities: advanced/functional.md
+- Changelog: changelog.md
+- Contributing: contributing.md
+
+extra_css:
+- stylesheets/extra.css

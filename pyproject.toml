@@ -7,7 +7,7 @@ name = "pyeval"
 version = "1.0.0"
 description = "A comprehensive pure Python evaluation framework for ML, NLP, LLM, RAG, Fairness, Speech, and Recommender systems"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "PyEval Team"}
 ]
@@ -29,7 +29,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -47,6 +46,18 @@ dependencies = []  # No dependencies!
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+    "black>=23.0",
+    "isort>=5.12",
+    "mypy>=1.0",
+]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "mkdocs-minify-plugin>=0.7",
+]
+all = [
+    "pyeval[dev,docs]",
 ]
 
 [project.urls]
