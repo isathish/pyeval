@@ -209,5 +209,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/yourusername/pyeval/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/yourusername/pyeval/releases/tag/v1.0.0
+[Unreleased]: https://github.com/isathish/pyeval/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/isathish/pyeval/releases/tag/v1.0.0
