@@ -6,10 +6,10 @@ Evaluation metrics for speech-to-text and text-to-speech systems
 including WER, CER, and related metrics.
 """
 
-from typing import List, Dict, Tuple, Optional, Any
+from typing import List, Dict, Tuple, Any
 from dataclasses import dataclass
 
-from pyeval.utils.text_ops import tokenize, normalize_text
+from pyeval.utils.text_ops import normalize_text
 from pyeval.utils.math_ops import mean
 
 
@@ -905,7 +905,6 @@ def fluency_score(reference: str, hypothesis: str,
     Returns:
         Dictionary with fluency metrics
     """
-    ref_words = reference.split()
     hyp_words = hypothesis.split()
     
     # Hesitation markers (common disfluencies)

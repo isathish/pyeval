@@ -5,7 +5,7 @@ Data Operations - Pure Python Implementation
 Data manipulation and validation functions for evaluation metrics.
 """
 
-from typing import List, Dict, Set, Tuple, Any, Optional, Union
+from typing import List, Dict, Set, Tuple, Any, Optional
 from collections import Counter
 
 

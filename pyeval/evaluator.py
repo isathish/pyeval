@@ -6,7 +6,7 @@ A unified interface for evaluating models across different domains
 with comprehensive reporting and experiment tracking.
 """
 
-from typing import Dict, List, Any, Optional, Union, Callable
+from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
@@ -45,7 +45,7 @@ class EvaluationReport:
             f"{'='*60}",
             f"Domain: {self.domain.upper()}",
             f"Timestamp: {self.timestamp}",
-            f"\n--- Metrics ---"
+            "\n--- Metrics ---"
         ]
         
         for name, value in sorted(self.metrics.items()):
@@ -55,7 +55,7 @@ class EvaluationReport:
                 lines.append(f"  {name}: {value}")
         
         if self.metadata:
-            lines.append(f"\n--- Metadata ---")
+            lines.append("\n--- Metadata ---")
             for key, value in self.metadata.items():
                 lines.append(f"  {key}: {value}")
         
@@ -148,7 +148,7 @@ class Evaluator:
             EvaluationReport with classification metrics
         """
         from pyeval.ml import (accuracy_score, precision_score, recall_score, 
-                               f1_score, roc_auc_score, ClassificationMetrics)
+                               f1_score, roc_auc_score)
         
         report = EvaluationReport(name=name, domain='ml')
         
@@ -186,7 +186,7 @@ class Evaluator:
             EvaluationReport with regression metrics
         """
         from pyeval.ml import (mean_squared_error, root_mean_squared_error,
-                               mean_absolute_error, r2_score, RegressionMetrics)
+                               mean_absolute_error, r2_score)
         
         report = EvaluationReport(name=name, domain='ml')
         
@@ -218,7 +218,7 @@ class Evaluator:
             EvaluationReport with NLP metrics
         """
         from pyeval.nlp import (sentence_bleu, rouge_score, meteor_score,
-                                distinct_n, NLPMetrics)
+                                distinct_n)
         
         report = EvaluationReport(name=name, domain='nlp')
         
@@ -274,7 +274,7 @@ class Evaluator:
             EvaluationReport with LLM evaluation metrics
         """
         from pyeval.llm import (toxicity_score, coherence_score, 
-                                fluency_score, LLMMetrics)
+                                fluency_score)
         
         report = EvaluationReport(name=name, domain='llm')
         
@@ -326,7 +326,7 @@ class Evaluator:
             EvaluationReport with RAG metrics
         """
         from pyeval.rag import (context_relevance, groundedness_score,
-                                rag_faithfulness, RAGMetrics)
+                                rag_faithfulness)
         
         report = EvaluationReport(name=name, domain='rag')
         
@@ -383,7 +383,7 @@ class Evaluator:
             EvaluationReport with fairness metrics
         """
         from pyeval.fairness import (demographic_parity, equalized_odds,
-                                     disparate_impact, FairnessMetrics)
+                                     disparate_impact)
         
         report = EvaluationReport(name=name, domain='fairness')
         
@@ -418,7 +418,7 @@ class Evaluator:
             EvaluationReport with speech metrics
         """
         from pyeval.speech import (word_error_rate, character_error_rate,
-                                   sentence_error_rate, SpeechMetrics)
+                                   sentence_error_rate)
         
         report = EvaluationReport(name=name, domain='speech')
         
@@ -460,8 +460,7 @@ class Evaluator:
         """
         from pyeval.recommender import (mean_precision_at_k, mean_recall_at_k,
                                         mean_ndcg_at_k, mean_average_precision,
-                                        mean_hit_rate, mean_reciprocal_rank,
-                                        RecommenderMetrics)
+                                        mean_hit_rate, mean_reciprocal_rank)
         
         report = EvaluationReport(name=name, domain='recommender')
         
@@ -716,7 +715,7 @@ class ExperimentTracker:
             f"\n{'='*80}",
             f"EXPERIMENT COMPARISON: {self.project_name}",
             f"{'='*80}",
-            f"\n--- Parameters ---",
+            "\n--- Parameters ---",
             f"{'Parameter':<25} | " + " | ".join(f"{e.name:<15}" for e in experiments)
         ]
         lines.append("-" * 80)
@@ -728,7 +727,7 @@ class ExperimentTracker:
                 values.append(f"{str(val):<15}")
             lines.append(f"{param:<25} | " + " | ".join(values))
         
-        lines.append(f"\n--- Metrics ---")
+        lines.append("\n--- Metrics ---")
         lines.append(f"{'Metric':<25} | " + " | ".join(f"{e.name:<15}" for e in experiments))
         lines.append("-" * 80)
         

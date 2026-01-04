@@ -5,8 +5,7 @@ Visualization Operations - Pure Python ASCII-based Visualizations
 Text-based visualizations for evaluation metrics without external dependencies.
 """
 
-from typing import List, Dict, Optional, Tuple, Any, Union
-from dataclasses import dataclass
+from typing import List, Dict, Optional, Any, Union
 
 Number = Union[int, float]
 
@@ -40,7 +39,7 @@ def confusion_matrix_display(matrix: List[List[int]],
     
     # Calculate cell width
     max_val = max(max(row) for row in matrix)
-    cell_width = max(len(str(max_val)), max(len(l) for l in labels)) + 2
+    cell_width = max(len(str(max_val)), max(len(label) for label in labels)) + 2
     
     lines = []
     
@@ -549,8 +548,6 @@ def metric_comparison_table(metrics: Dict[str, Dict[str, float]],
             values.append(val)
             row += f"{val:>{col_width}.4f}"
         
-        # Highlight best value
-        best_val = max(v for v in values if v == v)  # Exclude NaN
         # (Can't color in ASCII, but could add marker)
         lines.append(row)
     

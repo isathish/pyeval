@@ -12,8 +12,8 @@ Provides decorators for:
 
 import functools
 import time
-from typing import Callable, Any, Dict, Optional, List, TypeVar, Union
-from dataclasses import dataclass, field
+from typing import Callable, Any, Dict, Optional, List, TypeVar
+from dataclasses import dataclass
 from datetime import datetime
 
 F = TypeVar('F', bound=Callable[..., Any])

@@ -6,27 +6,21 @@ Evaluation metrics for Large Language Model outputs including
 hallucination detection, answer relevancy, faithfulness, and toxicity.
 """
 
-from typing import List, Dict, Tuple, Optional, Set, Any
+from typing import List, Dict, Optional, Set, Any
 from dataclasses import dataclass
 from collections import Counter
 import re
-import math
 
 from pyeval.utils.text_ops import (
     tokenize,
-    ngrams,
     sentence_split,
-    normalize_text,
     remove_stopwords,
-    get_word_frequencies,
     text_similarity,
     STOPWORDS
 )
 from pyeval.utils.math_ops import (
-    cosine_similarity,
     jaccard_similarity,
-    mean,
-    softmax
+    mean
 )
 
 
@@ -452,7 +446,6 @@ def faithfulness_score(response: str, source: str,
             'unfaithful_units': []
         }
     
-    source_lower = source.lower()
     source_tokens = set(tokenize(source, lowercase=True, remove_punct=True))
     source_tokens -= STOPWORDS
     
@@ -786,8 +779,6 @@ def fluency_score(text: str) -> Dict[str, float]:
     vocabulary_richness = min(1.0, ttr * 2)  # Scale up since TTR is usually < 0.5
     
     # Check for common grammar issues (simple heuristics)
-    text_lower = text.lower()
-    
     grammar_issues = 0
     
     # Double spaces

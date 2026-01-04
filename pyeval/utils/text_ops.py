@@ -7,7 +7,7 @@ Text processing functions for NLP evaluation without external dependencies.
 
 import re
 import string
-from typing import List, Set, Tuple, Optional, Iterator
+from typing import List, Set, Tuple, Optional
 from collections import Counter
 
 

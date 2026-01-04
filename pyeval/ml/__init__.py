@@ -887,9 +887,9 @@ def classification_report(y_true: List[Any], y_pred: List[Any],
         }
     
     # Add averages
-    macro_prec = mean([report_dict[str(l)]['precision'] for l in labels])
-    macro_rec = mean([report_dict[str(l)]['recall'] for l in labels])
-    macro_f1 = mean([report_dict[str(l)]['f1-score'] for l in labels])
+    macro_prec = mean([report_dict[str(label)]['precision'] for label in labels])
+    macro_rec = mean([report_dict[str(label)]['recall'] for label in labels])
+    macro_f1 = mean([report_dict[str(label)]['f1-score'] for label in labels])
     
     report_dict['macro avg'] = {
         'precision': macro_prec,
@@ -898,13 +898,13 @@ def classification_report(y_true: List[Any], y_pred: List[Any],
         'support': len(y_true)
     }
     
-    total_support = sum(report_dict[str(l)]['support'] for l in labels)
-    weighted_prec = sum(report_dict[str(l)]['precision'] * report_dict[str(l)]['support'] 
-                        for l in labels) / total_support if total_support > 0 else 0
-    weighted_rec = sum(report_dict[str(l)]['recall'] * report_dict[str(l)]['support'] 
-                       for l in labels) / total_support if total_support > 0 else 0
-    weighted_f1 = sum(report_dict[str(l)]['f1-score'] * report_dict[str(l)]['support'] 
-                      for l in labels) / total_support if total_support > 0 else 0
+    total_support = sum(report_dict[str(label)]['support'] for label in labels)
+    weighted_prec = sum(report_dict[str(label)]['precision'] * report_dict[str(label)]['support'] 
+                        for label in labels) / total_support if total_support > 0 else 0
+    weighted_rec = sum(report_dict[str(label)]['recall'] * report_dict[str(label)]['support'] 
+                       for label in labels) / total_support if total_support > 0 else 0
+    weighted_f1 = sum(report_dict[str(label)]['f1-score'] * report_dict[str(label)]['support'] 
+                      for label in labels) / total_support if total_support > 0 else 0
     
     report_dict['weighted avg'] = {
         'precision': weighted_prec,
@@ -1536,14 +1536,12 @@ def normalized_mutual_info_score(labels_true: List[int], labels_pred: List[int],
     check_consistent_length(labels_true, labels_pred)
     
     n = len(labels_true)
-    classes = list(set(labels_true))
-    clusters = list(set(labels_pred))
     
     # Calculate entropies
     def entropy(labels):
         counts = {}
-        for l in labels:
-            counts[l] = counts.get(l, 0) + 1
+        for item in labels:
+            counts[item] = counts.get(item, 0) + 1
         total = len(labels)
         return -sum((c / total) * math.log(c / total) for c in counts.values() if c > 0)
     
@@ -1605,8 +1603,8 @@ def homogeneity_score(labels_true: List[int], labels_pred: List[int]) -> float:
     
     def entropy(labels):
         counts = {}
-        for l in labels:
-            counts[l] = counts.get(l, 0) + 1
+        for item in labels:
+            counts[item] = counts.get(item, 0) + 1
         total = len(labels)
         return -sum((c / total) * math.log(c / total) for c in counts.values() if c > 0)
     

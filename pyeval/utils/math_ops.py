@@ -6,7 +6,8 @@ Core mathematical functions without external dependencies.
 """
 
 import math
-from typing import List, Union, Optional, Tuple
+import random
+from typing import List, Union, Optional, Dict
 
 Number = Union[int, float]
 
@@ -509,9 +510,6 @@ def kl_divergence(p: List[float], q: List[float], eps: float = 1e-15) -> float:
 # Statistical Testing Functions
 # =============================================================================
 
-import random
-from typing import Dict, Any
-
 
 def bootstrap_confidence_interval(data: List[Number], 
                                   statistic: str = "mean",
@@ -719,8 +717,6 @@ def wilcoxon_signed_rank_test(sample1: List[Number],
     """
     if len(sample1) != len(sample2):
         raise ValueError("Samples must have the same length")
-    
-    n = len(sample1)
     
     # Calculate differences (excluding zeros)
     differences = []

@@ -6,7 +6,7 @@ Evaluation metrics for recommendation systems including
 Precision@K, Recall@K, NDCG, MAP, and Hit Rate.
 """
 
-from typing import List, Dict, Tuple, Optional, Set, Any, Union
+from typing import List, Dict, Optional, Any, Union
 from dataclasses import dataclass
 import math
 

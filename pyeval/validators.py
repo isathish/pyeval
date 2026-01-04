@@ -10,7 +10,7 @@ Provides validation utilities for:
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Union, TypeVar
+from typing import Any, Dict, List, TypeVar
 from dataclasses import dataclass, field
 
 T = TypeVar('T')
@@ -371,12 +371,12 @@ class AnyOf(Validator):
         return result
 
 
-class Optional(Validator):
+class OptionalValidator(Validator):
     """
     Validates value if not None, allows None.
     
     Example:
-        validator = Optional(NumericValidator(min_value=0))
+        validator = OptionalValidator(NumericValidator(min_value=0))
         result = validator.validate(None)  # Valid
     """
     
@@ -387,6 +387,10 @@ class Optional(Validator):
         if value is None:
             return ValidationResult(is_valid=True)
         return self.validator.validate(value)
+
+
+# Alias for backward compatibility
+Optional = OptionalValidator
 
 
 # =============================================================================
@@ -613,13 +617,13 @@ class SchemaValidator(Validator):
             return result
         
         # Validate each field
-        for name, field in self.fields.items():
+        for name, field_def in self.fields.items():
             if name not in value:
-                if field.required:
+                if field_def.required:
                     result.add_error(f"Missing required field: {name}")
                 continue
             
-            field_result = field.validator.validate(value[name])
+            field_result = field_def.validator.validate(value[name])
             if not field_result.is_valid:
                 for error in field_result.errors:
                     result.add_error(f"Field '{name}': {error}")
@@ -637,9 +641,9 @@ class SchemaValidator(Validator):
     def with_defaults(self, value: Dict) -> Dict:
         """Return value with defaults filled in."""
         result = dict(value)
-        for name, field in self.fields.items():
-            if name not in result and field.default is not None:
-                result[name] = field.default
+        for name, field_def in self.fields.items():
+            if name not in result and field_def.default is not None:
+                result[name] = field_def.default
         return result
 
 
@@ -672,7 +676,8 @@ __all__ = [
     # Composite validators
     'AllOf',
     'AnyOf',
-    'Optional',
+    'OptionalValidator',
+    'Optional',  # Alias for OptionalValidator
     
     # Metric validators
     'PredictionValidator',

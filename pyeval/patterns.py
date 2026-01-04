@@ -11,7 +11,7 @@ Implements common design patterns:
 """
 
 from abc import ABC, abstractmethod
-from typing import Callable, Any, Dict, List, Optional, TypeVar, Generic
+from typing import Callable, Any, Dict, List, Optional, TypeVar
 from dataclasses import dataclass, field
 from enum import Enum
 

@@ -6,9 +6,8 @@ Evaluation metrics for AI fairness including demographic parity,
 equalized odds, disparate impact, and statistical parity.
 """
 
-from typing import List, Dict, Tuple, Optional, Set, Any, Union
+from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
-from collections import Counter
 import math
 
 from pyeval.utils.data_ops import check_consistent_length, unique_labels

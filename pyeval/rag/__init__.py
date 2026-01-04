@@ -6,11 +6,10 @@ Evaluation metrics for RAG systems including context relevance,
 answer correctness, retrieval quality, and groundedness.
 """
 
-from typing import List, Dict, Tuple, Optional, Set, Any
+from typing import List, Dict, Optional, Set, Any
 from dataclasses import dataclass
 from collections import Counter
 import re
-import math
 
 from pyeval.utils.text_ops import (
     tokenize,
@@ -21,7 +20,7 @@ from pyeval.utils.text_ops import (
     text_similarity,
     STOPWORDS
 )
-from pyeval.utils.math_ops import mean, jaccard_similarity
+from pyeval.utils.math_ops import mean
 
 
 # =============================================================================
@@ -155,10 +154,6 @@ def context_recall(question: str, contexts: List[str],
     """
     if not ground_truth_contexts:
         return 1.0 if not contexts else 0.0
-    
-    # Normalize contexts for comparison
-    normalized_retrieved = set(normalize_text(c) for c in contexts)
-    normalized_truth = set(normalize_text(c) for c in ground_truth_contexts)
     
     # Count matches (using text similarity for fuzzy matching)
     matches = 0
@@ -552,8 +547,6 @@ def rag_faithfulness(answer: str, contexts: List[str]) -> Dict[str, Any]:
             'total_claims': 0,
             'details': []
         }
-    
-    combined_context = ' '.join(contexts)
     
     faithful_count = 0
     details = []

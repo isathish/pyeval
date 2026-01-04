@@ -12,9 +12,7 @@ import math
 
 from pyeval.utils.text_ops import (
     tokenize, 
-    ngrams, 
-    word_ngrams,
-    normalize_text,
+    ngrams,
     stem,
     STOPWORDS
 )
@@ -995,26 +993,6 @@ def lexical_diversity(text: str) -> Dict[str, float]:
         'vocabulary_size': n_types,
         'total_tokens': n_tokens
     }
-
-
-def sentence_bleu(reference: str, candidate: str, 
-                  max_n: int = 4, smoothing: bool = True) -> float:
-    """
-    Calculate sentence-level BLEU score.
-    
-    Convenience wrapper for single sentence evaluation.
-    
-    Args:
-        reference: Reference sentence
-        candidate: Candidate sentence
-        max_n: Maximum n-gram order
-        smoothing: Apply smoothing
-        
-    Returns:
-        BLEU score
-    """
-    result = bleu_score([reference], candidate, max_n=max_n, smoothing=smoothing)
-    return result['bleu']
 
 
 # =============================================================================

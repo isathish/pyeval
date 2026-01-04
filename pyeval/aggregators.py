@@ -9,7 +9,7 @@ Provides aggregation strategies for:
 - Cross-validation support
 """
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
+from typing import Dict, List, TypeVar
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 import math
@@ -410,7 +410,9 @@ class CrossValidationAggregator:
         if not self._fold_results:
             return None
         
-        key_func = lambda fr: fr.metrics.get(metric_name, float('-inf') if maximize else float('inf'))
+        def key_func(fr):
+            return fr.metrics.get(metric_name, float('-inf') if maximize else float('inf'))
+        
         return max(self._fold_results, key=key_func) if maximize else min(self._fold_results, key=key_func)
     
     def summary_table(self) -> str:

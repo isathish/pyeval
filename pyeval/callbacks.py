@@ -10,8 +10,8 @@ Provides a comprehensive callback system for:
 - Threshold alerts
 """
 
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from abc import ABC
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum

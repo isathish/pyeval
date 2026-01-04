@@ -9,7 +9,7 @@ Provides functional programming utilities for:
 - Currying and partial application
 """
 
-from typing import Any, Callable, Generic, List, Optional, TypeVar, Union, Tuple
+from typing import Any, Callable, Generic, List, Optional, TypeVar, Tuple
 from dataclasses import dataclass
 from functools import reduce
 

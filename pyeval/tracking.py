@@ -5,7 +5,7 @@ Experiment Tracking - Pure Python Implementation
 Simple experiment tracking for ML/AI model evaluation.
 """
 
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
@@ -242,7 +242,7 @@ class ExperimentTracker:
         
         # Parameters
         if all_params:
-            lines.append(f"\n--- Parameters ---")
+            lines.append("\n--- Parameters ---")
             lines.append(f"{'Parameter':<25} | " + " | ".join(f"{r.run_id[:15]:<15}" for r in runs))
             lines.append("-" * 80)
             
@@ -256,7 +256,7 @@ class ExperimentTracker:
         
         # Metrics
         if all_metrics:
-            lines.append(f"\n--- Metrics ---")
+            lines.append("\n--- Metrics ---")
             lines.append(f"{'Metric':<25} | " + " | ".join(f"{r.run_id[:15]:<15}" for r in runs))
             lines.append("-" * 80)
             
