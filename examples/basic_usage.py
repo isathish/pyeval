@@ -171,11 +171,9 @@ def demo_nlp():
     print(f"  Hypothesis: '{hypothesis}'")
     print()
     
-    # BLEU Score
-    ref_tokens = reference.lower().split()
-    hyp_tokens = hypothesis.lower().split()
-    bleu = bleu_score([ref_tokens], hyp_tokens)
-    print(f"  BLEU Score: {bleu:.4f}")
+    # BLEU Score (pass strings - function tokenizes internally)
+    bleu = bleu_score([reference], hypothesis)
+    print(f"  BLEU Score: {bleu['bleu']:.4f}")
     
     # ROUGE Scores
     rouge = rouge_score(reference, hypothesis)
@@ -184,13 +182,13 @@ def demo_nlp():
     print(f"    ROUGE-2 F1: {rouge['rouge2']['f1']:.4f}")
     print(f"    ROUGE-L F1: {rouge['rougeL']['f1']:.4f}")
     
-    # METEOR Score
-    meteor = meteor_score([reference], hypothesis)
-    print(f"\n  METEOR Score: {meteor:.4f}")
+    # METEOR Score (single reference string, candidate string)
+    meteor = meteor_score(reference, hypothesis)
+    print(f"\n  METEOR Score: {meteor['meteor']:.4f}")
     
-    # Using NLPMetrics class
+    # Using NLPMetrics class (single reference, single candidate)
     print("\n  Using NLPMetrics.compute():")
-    metrics = NLPMetrics.compute([reference], hypothesis)
+    metrics = NLPMetrics.compute(reference, hypothesis)
     print(f"    BLEU={metrics.bleu:.4f}, ROUGE-1={metrics.rouge1_f1:.4f}, "
           f"METEOR={metrics.meteor:.4f}")
 
@@ -212,11 +210,18 @@ def demo_llm():
     print(f"  Context:  '{context[:50]}...'")
     print()
     
-    print(f"  Toxicity Score:     {toxicity_score(response):.4f} (lower is better)")
-    print(f"  Coherence Score:    {coherence_score(response, query):.4f}")
-    print(f"  Relevancy Score:    {answer_relevancy(response, query):.4f}")
-    print(f"  Faithfulness Score: {faithfulness_score(response, context):.4f}")
-    print(f"  Hallucination Score: {hallucination_score(response, context):.4f} (lower is better)")
+    # All LLM functions return dictionaries with scores
+    toxicity = toxicity_score(response)
+    coherence = coherence_score(response)
+    relevancy = answer_relevancy(query, response)
+    faithful = faithfulness_score(response, context)
+    hallucination = hallucination_score(response, context)
+    
+    print(f"  Toxicity Score:     {toxicity['toxicity']:.4f} (lower is better)")
+    print(f"  Coherence Score:    {coherence['coherence']:.4f}")
+    print(f"  Relevancy Score:    {relevancy['relevancy']:.4f}")
+    print(f"  Faithfulness Score: {faithful['faithfulness']:.4f}")
+    print(f"  Hallucination Score: {hallucination['hallucination_score']:.4f} (lower is better)")
     
     # Using LLMMetrics class
     print("\n  Using LLMMetrics.compute():")
@@ -246,14 +251,19 @@ def demo_rag():
     print(f"  Contexts: {len(contexts)} retrieved")
     print()
     
-    print(f"  Context Relevance:    {context_relevance(query, contexts):.4f}")
-    print(f"  Answer Correctness:   {answer_correctness(response, ground_truth):.4f}")
+    # context_relevance and answer_correctness return dicts
+    ctx_rel = context_relevance(query, contexts)
+    ans_corr = answer_correctness(response, ground_truth)
+    
+    print(f"  Context Relevance:    {ctx_rel['overall_relevance']:.4f}")
+    print(f"  Answer Correctness:   {ans_corr['correctness']:.4f}")
     print(f"  Retrieval Precision:  {retrieval_precision(contexts, [ground_truth]):.4f}")
     print(f"  Retrieval Recall:     {retrieval_recall(contexts, [ground_truth]):.4f}")
     
     # Using RAGMetrics class
+    # Signature: compute(question, answer, contexts, ground_truth_answer, ground_truth_contexts)
     print("\n  Using RAGMetrics.compute():")
-    metrics = RAGMetrics.compute(query, contexts, response, ground_truth)
+    metrics = RAGMetrics.compute(query, response, contexts, ground_truth)
     print(f"    Context Relevance: {metrics.context_relevance:.4f}")
     print(f"    Answer Correctness: {metrics.answer_correctness:.4f}")
 
@@ -276,15 +286,20 @@ def demo_fairness():
     print(f"  Groups: A ({sensitive.count('A')}), B ({sensitive.count('B')})")
     print()
     
-    print(f"  Demographic Parity Diff: {demographic_parity(y_pred, sensitive):.4f}")
-    print(f"  Equalized Odds Diff:     {equalized_odds(y_true, y_pred, sensitive):.4f}")
-    print(f"  Disparate Impact Ratio:  {disparate_impact(y_pred, sensitive):.4f}")
+    # All fairness functions return dictionaries
+    dp = demographic_parity(y_pred, sensitive)
+    eo = equalized_odds(y_true, y_pred, sensitive)
+    di = disparate_impact(y_pred, sensitive)
+    
+    print(f"  Demographic Parity Diff: {dp['dp_difference']:.4f}")
+    print(f"  Equalized Odds Diff:     {eo['eo_difference']:.4f}")
+    print(f"  Disparate Impact Ratio:  {di['di_ratio']:.4f}")
     
     # Using FairnessMetrics class
     print("\n  Using FairnessMetrics.compute():")
     metrics = FairnessMetrics.compute(y_true, y_pred, sensitive)
-    print(f"    Demographic Parity: {metrics.demographic_parity_difference:.4f}")
-    print(f"    Equalized Odds: {metrics.equalized_odds_difference:.4f}")
+    print(f"    Demographic Parity: {metrics.dp_difference:.4f}")
+    print(f"    Equalized Odds (TPR diff): {metrics.tpr_difference:.4f}")
 
 
 # =============================================================================
@@ -302,8 +317,12 @@ def demo_speech():
     print(f"  Hypothesis: '{hypothesis}'")
     print()
     
-    print(f"  Word Error Rate (WER):      {word_error_rate(reference, hypothesis):.4f}")
-    print(f"  Character Error Rate (CER): {character_error_rate(reference, hypothesis):.4f}")
+    # Speech metrics return dicts
+    wer = word_error_rate(reference, hypothesis)
+    cer = character_error_rate(reference, hypothesis)
+    
+    print(f"  Word Error Rate (WER):      {wer['wer']:.4f}")
+    print(f"  Character Error Rate (CER): {cer['cer']:.4f}")
     
     # Using SpeechMetrics class
     print("\n  Using SpeechMetrics.compute():")

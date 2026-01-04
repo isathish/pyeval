@@ -65,18 +65,18 @@ from pyeval import bleu_score, rouge_score, meteor_score
 reference = "The quick brown fox jumps over the lazy dog"
 hypothesis = "A fast brown fox leaps over a lazy dog"
 
-# BLEU
-bleu = bleu_score([reference.split()], hypothesis.split())
-print(f"BLEU: {bleu:.4f}")
+# BLEU (pass reference strings, candidate string)
+bleu = bleu_score([reference], hypothesis)
+print(f"BLEU: {bleu['bleu']:.4f}")
 
 # ROUGE
 rouge = rouge_score(reference, hypothesis)
 print(f"ROUGE-1 F1: {rouge['rouge1']['f1']:.4f}")
 print(f"ROUGE-L F1: {rouge['rougeL']['f1']:.4f}")
 
-# METEOR
-meteor = meteor_score([reference], hypothesis)
-print(f"METEOR: {meteor:.4f}")
+# METEOR (single reference string, candidate string)
+meteor = meteor_score(reference, hypothesis)
+print(f"METEOR: {meteor['meteor']:.4f}")
 ```
 
 ### LLM Evaluation
@@ -92,11 +92,21 @@ query = "What is the capital of France?"
 response = "The capital of France is Paris."
 context = "France is a country in Europe. Its capital is Paris."
 
-print(f"Toxicity:     {toxicity_score(response):.4f}")
-print(f"Coherence:    {coherence_score(response, query):.4f}")
-print(f"Relevancy:    {answer_relevancy(response, query):.4f}")
-print(f"Faithfulness: {faithfulness_score(response, context):.4f}")
-print(f"Hallucination: {hallucination_score(response, context):.4f}")
+# All LLM functions return dictionaries with detailed metrics
+toxicity = toxicity_score(response)
+print(f"Toxicity:     {toxicity['toxicity']:.4f}")
+
+coherence = coherence_score(response)
+print(f"Coherence:    {coherence['coherence']:.4f}")
+
+relevancy = answer_relevancy(query, response)
+print(f"Relevancy:    {relevancy['relevancy']:.4f}")
+
+faithful = faithfulness_score(response, context)
+print(f"Faithfulness: {faithful['faithfulness']:.4f}")
+
+hallucination = hallucination_score(response, context)
+print(f"Hallucination: {hallucination['hallucination_score']:.4f}")
 ```
 
 ### RAG Evaluation
@@ -116,12 +126,15 @@ contexts = [
 response = "Exercise improves heart health and reduces stress."
 ground_truth = "Exercise is good for heart health and mental well-being."
 
-# Individual metrics
-print(f"Context Relevance: {context_relevance(query, contexts):.4f}")
-print(f"Answer Correctness: {answer_correctness(response, ground_truth):.4f}")
+# Individual metrics (return dictionaries)
+ctx_rel = context_relevance(query, contexts)
+print(f"Context Relevance: {ctx_rel['overall_relevance']:.4f}")
 
-# All-in-one
-metrics = RAGMetrics.compute(query, contexts, response, ground_truth)
+ans_corr = answer_correctness(response, ground_truth)
+print(f"Answer Correctness: {ans_corr['correctness']:.4f}")
+
+# All-in-one (signature: question, answer, contexts, ground_truth_answer)
+metrics = RAGMetrics.compute(query, response, contexts, ground_truth)
 print(f"Context Relevance: {metrics.context_relevance:.4f}")
 ```
 
@@ -134,9 +147,15 @@ y_true = [1, 0, 1, 1, 0, 1, 0, 0]
 y_pred = [1, 0, 0, 1, 0, 1, 1, 0]
 sensitive = ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']
 
-print(f"Demographic Parity: {demographic_parity(y_pred, sensitive):.4f}")
-print(f"Equalized Odds:     {equalized_odds(y_true, y_pred, sensitive):.4f}")
-print(f"Disparate Impact:   {disparate_impact(y_pred, sensitive):.4f}")
+# All fairness functions return dictionaries with detailed metrics
+dp = demographic_parity(y_pred, sensitive)
+print(f"Demographic Parity: {dp['dp_difference']:.4f}")
+
+eo = equalized_odds(y_true, y_pred, sensitive)
+print(f"Equalized Odds:     {eo['eo_difference']:.4f}")
+
+di = disparate_impact(y_pred, sensitive)
+print(f"Disparate Impact:   {di['di_ratio']:.4f}")
 ```
 
 ### Speech Recognition
@@ -147,8 +166,12 @@ from pyeval import word_error_rate, character_error_rate
 reference = "the quick brown fox jumps over the lazy dog"
 hypothesis = "the quick brown fox jumps over lazy dog"
 
-print(f"WER: {word_error_rate(reference, hypothesis):.4f}")
-print(f"CER: {character_error_rate(reference, hypothesis):.4f}")
+# Speech metrics return dictionaries with error counts
+wer = word_error_rate(reference, hypothesis)
+print(f"WER: {wer['wer']:.4f}")
+
+cer = character_error_rate(reference, hypothesis)
+print(f"CER: {cer['cer']:.4f}")
 ```
 
 ### Recommender Systems
