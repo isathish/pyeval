@@ -189,6 +189,64 @@ print(f"Recall@5:    {recall_at_k(recommended, relevant, k=5):.4f}")
 print(f"NDCG@5:      {ndcg_at_k(recommended, relevant, k=5):.4f}")
 ```
 
+### Statistical Testing
+
+```python
+from pyeval import (
+    bootstrap_confidence_interval, paired_t_test, cohens_d,
+    mcnemar_test, correlation_coefficient
+)
+
+# Bootstrap confidence interval
+data = [0.85, 0.87, 0.86, 0.88, 0.84, 0.89, 0.87]
+ci = bootstrap_confidence_interval(data, 'mean', confidence=0.95)
+print(f"Mean: {ci['point_estimate']:.3f} CI: [{ci['ci_lower']:.3f}, {ci['ci_upper']:.3f}]")
+
+# Compare two models with paired t-test
+model1_scores = [0.85, 0.87, 0.86, 0.88, 0.84]
+model2_scores = [0.88, 0.89, 0.87, 0.90, 0.86]
+result = paired_t_test(model1_scores, model2_scores)
+print(f"t-statistic: {result['t_statistic']:.3f}, p-value: {result['p_value']:.4f}")
+
+# Effect size
+d = cohens_d(model1_scores, model2_scores)
+print(f"Cohen's d: {d:.3f}")  # 0.2=small, 0.5=medium, 0.8=large
+
+# McNemar test for classifier comparison
+contingency = [[45, 15], [5, 35]]  # [[both correct, only A], [only B, both wrong]]
+result = mcnemar_test(contingency)
+print(f"McNemar chi²: {result['chi_square']:.3f}, p-value: {result['p_value']:.4f}")
+```
+
+### ASCII Visualizations
+
+```python
+from pyeval import (
+    confusion_matrix_display, classification_report_display,
+    horizontal_bar_chart, sparkline, progress_bar
+)
+
+# Display confusion matrix
+matrix = [[45, 5], [10, 40]]
+print(confusion_matrix_display(matrix, labels=['Negative', 'Positive']))
+
+# Classification report
+y_true = [0, 0, 1, 1, 2, 2]
+y_pred = [0, 0, 1, 2, 2, 2]
+print(classification_report_display(y_true, y_pred))
+
+# Bar chart for metrics
+metrics = {'Precision': 0.89, 'Recall': 0.85, 'F1': 0.87, 'Accuracy': 0.88}
+print(horizontal_bar_chart(metrics, title="Model Performance"))
+
+# Sparkline for training progress
+losses = [0.9, 0.7, 0.5, 0.4, 0.35, 0.3, 0.28, 0.26]
+print(f"Training loss: {sparkline(losses)}")
+
+# Progress bar
+print(progress_bar(75, 100, prefix="Evaluation"))
+```
+
 ## 🔧 Unified Evaluator
 
 Use the unified `Evaluator` class for streamlined evaluation across domains:
@@ -507,6 +565,7 @@ Each domain provides a convenience class for computing all metrics at once:
 ```bash
 cd pyeval
 python -m pytest tests/ -v
+# 275 tests passing
 ```
 
 ## 📄 License
