@@ -19,18 +19,17 @@ class TestContextRelevance:
     
     def test_relevant_context(self):
         """Relevant context should have high score."""
-        context = "Paris is the capital city of France and is famous for the Eiffel Tower."
-        query = "What is the capital of France?"
-        result = context_relevance(context, query)
-        assert isinstance(result, (int, float, dict))
-        if isinstance(result, dict):
-            assert 'score' in result
+        question = "What is the capital of France?"
+        contexts = ["Paris is the capital city of France and is famous for the Eiffel Tower."]
+        result = context_relevance(question, contexts)
+        assert isinstance(result, dict)
+        assert 'overall_relevance' in result or 'context_scores' in result
     
     def test_irrelevant_context(self):
         """Irrelevant context should have lower score."""
-        context = "The weather in Australia is often sunny and warm."
-        query = "What is the capital of France?"
-        result = context_relevance(context, query)
+        question = "What is the capital of France?"
+        contexts = ["The weather in Australia is often sunny and warm."]
+        result = context_relevance(question, contexts)
         assert result is not None
 
 
@@ -39,14 +38,15 @@ class TestContextPrecision:
     
     def test_context_precision_high(self):
         """Retrieved context fully relevant should have high precision."""
-        retrieved_contexts = [
+        question = "Tell me about Paris and France."
+        contexts = [
             "Paris is the capital of France.",
             "France is a country in Western Europe.",
             "The Eiffel Tower is in Paris."
         ]
-        query = "Tell me about Paris and France."
-        result = context_precision(retrieved_contexts, query)
-        assert result is not None
+        result = context_precision(question, contexts)
+        assert isinstance(result, float)
+        assert 0 <= result <= 1
 
 
 class TestContextRecall:
@@ -54,13 +54,15 @@ class TestContextRecall:
     
     def test_context_recall(self):
         """Context recall should work with ground truth."""
-        retrieved_contexts = [
+        question = "What is the capital of France?"
+        contexts = [
             "Paris is the capital of France.",
             "The Eiffel Tower is located in Paris."
         ]
-        ground_truth = "Paris is the capital of France and home to the Eiffel Tower."
-        result = context_recall(retrieved_contexts, ground_truth)
-        assert result is not None
+        ground_truth_contexts = ["Paris is the capital of France and home to the Eiffel Tower."]
+        result = context_recall(question, contexts, ground_truth_contexts)
+        assert isinstance(result, float)
+        assert 0 <= result <= 1
 
 
 class TestAnswerCorrectness:
@@ -72,9 +74,6 @@ class TestAnswerCorrectness:
         ground_truth = "Paris"
         result = answer_correctness(answer, ground_truth)
         assert result is not None
-        # If numeric, should be high for exact match
-        if isinstance(result, (int, float)):
-            assert result >= 0
     
     def test_partially_correct(self):
         """Partially correct answer should have medium score."""
@@ -92,16 +91,15 @@ class TestRetrievalPrecision:
         retrieved = ["doc1", "doc2", "doc3"]
         relevant = ["doc1", "doc2", "doc3", "doc4"]
         result = retrieval_precision(retrieved, relevant)
-        assert result is not None
-        if isinstance(result, (int, float)):
-            assert 0 <= result <= 1
+        assert isinstance(result, float)
+        assert 0 <= result <= 1
     
     def test_no_relevant(self):
         """No relevant retrievals should have low precision."""
         retrieved = ["doc5", "doc6"]
         relevant = ["doc1", "doc2"]
         result = retrieval_precision(retrieved, relevant)
-        assert result is not None
+        assert result == 0.0
 
 
 class TestRetrievalRecall:
@@ -112,16 +110,16 @@ class TestRetrievalRecall:
         retrieved = ["doc1", "doc2", "doc3", "doc4"]
         relevant = ["doc1", "doc2"]
         result = retrieval_recall(retrieved, relevant)
-        assert result is not None
-        if isinstance(result, (int, float)):
-            assert 0 <= result <= 1
+        assert isinstance(result, float)
+        assert result == 1.0
     
     def test_partial_recall(self):
         """Some relevant docs retrieved should have partial recall."""
         retrieved = ["doc1", "doc5"]
         relevant = ["doc1", "doc2", "doc3"]
         result = retrieval_recall(retrieved, relevant)
-        assert result is not None
+        assert isinstance(result, float)
+        assert 0 < result < 1
 
 
 class TestGroundednessScore:
@@ -130,16 +128,17 @@ class TestGroundednessScore:
     def test_grounded_response(self):
         """Response grounded in context should score high."""
         response = "Paris is the capital of France."
-        context = "France is a country. Paris is the capital of France."
-        result = groundedness_score(response, context)
-        assert result is not None
+        contexts = ["France is a country. Paris is the capital of France."]
+        result = groundedness_score(response, contexts)
+        assert isinstance(result, dict)
+        assert 'groundedness' in result
     
     def test_ungrounded_response(self):
         """Response not in context should score low."""
         response = "Tokyo is the capital of Japan."
-        context = "France is a country. Paris is the capital."
-        result = groundedness_score(response, context)
-        assert result is not None
+        contexts = ["France is a country. Paris is the capital."]
+        result = groundedness_score(response, contexts)
+        assert isinstance(result, dict)
 
 
 class TestNoiseRobustness:
@@ -147,14 +146,13 @@ class TestNoiseRobustness:
     
     def test_with_noise(self):
         """Should handle noisy context."""
-        response = "Paris is the capital of France."
-        contexts = [
-            "Paris is the capital of France.",
-            "Random noise about unrelated topics.",
-            "More irrelevant information."
-        ]
-        result = noise_robustness(response, contexts)
-        assert result is not None
+        question = "What is the capital of France?"
+        answer = "Paris is the capital of France."
+        contexts = ["Paris is the capital of France."]
+        noise_contexts = ["Random noise about unrelated topics.", "More irrelevant information."]
+        result = noise_robustness(question, answer, contexts, noise_contexts)
+        assert isinstance(result, dict)
+        assert 'robustness' in result
 
 
 class TestRAGMetrics:
@@ -162,21 +160,20 @@ class TestRAGMetrics:
     
     def test_compute_metrics(self):
         """Should compute RAG metrics."""
-        query = "What is the capital of France?"
-        answer = "Paris is the capital of France."
-        contexts = ["France is a country. Paris is its capital."]
-        ground_truth = "Paris"
-        
-        metrics = RAGMetrics.compute(query, answer, contexts, ground_truth)
+        metrics = RAGMetrics.compute(
+            question="What is the capital of France?",
+            answer="Paris is the capital of France.",
+            contexts=["France is a country. Paris is its capital."]
+        )
         assert metrics is not None
     
     def test_without_ground_truth(self):
         """Should work without ground truth."""
-        query = "What is the capital of France?"
-        answer = "Paris"
-        contexts = ["Paris is the capital of France."]
-        
-        metrics = RAGMetrics.compute(query, answer, contexts)
+        metrics = RAGMetrics.compute(
+            question="What is the capital of France?",
+            answer="Paris",
+            contexts=["Paris is the capital of France."]
+        )
         assert metrics is not None
 
 

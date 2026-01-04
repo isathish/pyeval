@@ -61,22 +61,35 @@ from pyeval.llm import (
     faithfulness_score,
     toxicity_score,
     coherence_score,
+    fluency_score,
+    completeness_score,
+    factual_consistency,
     LLMMetrics,
 )
 
 from pyeval.rag import (
     context_relevance,
+    context_precision,
+    context_recall,
     answer_correctness,
     retrieval_precision,
     retrieval_recall,
+    groundedness_score,
+    noise_robustness,
+    rag_faithfulness,
     RAGMetrics,
 )
 
 from pyeval.fairness import (
     demographic_parity,
     equalized_odds,
+    equal_opportunity,
     disparate_impact,
     statistical_parity_difference,
+    calibration_by_group,
+    individual_fairness,
+    counterfactual_fairness_check,
+    comprehensive_fairness_analysis,
     FairnessMetrics,
 )
 
@@ -297,20 +310,33 @@ __all__ = [
     "faithfulness_score",
     "toxicity_score",
     "coherence_score",
+    "fluency_score",
+    "completeness_score",
+    "factual_consistency",
     "LLMMetrics",
     
     # RAG Metrics
     "context_relevance",
+    "context_precision",
+    "context_recall",
     "answer_correctness",
     "retrieval_precision",
     "retrieval_recall",
+    "groundedness_score",
+    "noise_robustness",
+    "rag_faithfulness",
     "RAGMetrics",
     
     # Fairness Metrics
     "demographic_parity",
     "equalized_odds",
+    "equal_opportunity",
     "disparate_impact",
     "statistical_parity_difference",
+    "calibration_by_group",
+    "individual_fairness",
+    "counterfactual_fairness_check",
+    "comprehensive_fairness_analysis",
     "FairnessMetrics",
     
     # Speech Metrics

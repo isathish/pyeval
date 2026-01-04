@@ -228,13 +228,14 @@ class Evaluator:
         meteor_scores = []
         
         for ref, hyp in zip(references, hypotheses):
-            bleu_scores.append(sentence_bleu([ref.split()], hyp.split()))
+            bleu_scores.append(sentence_bleu(ref, hyp))
             
             rouge = rouge_score(ref, hyp)
             for key in rouge_scores:
                 rouge_scores[key].append(rouge.get(key, {}).get('f1', 0))
             
-            meteor_scores.append(meteor_score([ref], hyp))
+            meteor_result = meteor_score(ref, hyp)
+            meteor_scores.append(meteor_result.get('meteor', 0) if isinstance(meteor_result, dict) else meteor_result)
         
         from pyeval.utils.math_ops import mean
         

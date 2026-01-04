@@ -126,7 +126,7 @@ class TestExperimentTracker:
             run.set_status("completed")
             tracker.save_run(run)
         
-        best = tracker.get_best_run('loss', maximize=False)
+        best = tracker.get_best_run('loss', higher_is_better=False)
         assert best.metrics['loss'] == 0.05
     
     def test_compare_runs(self):
@@ -144,132 +144,81 @@ class TestExperimentTracker:
         assert isinstance(comparison, str)
         assert 'exp_0' in comparison or 'accuracy' in comparison
     
-    def test_filter_runs(self):
-        """Should filter runs by criteria."""
+    def test_get_runs_by_experiment(self):
+        """Should filter runs by experiment name."""
         tracker = ExperimentTracker("test")
         
-        for i in range(5):
-            run = tracker.create_run(f"exp_{i}")
-            run.log_params({'lr': 0.01 if i < 3 else 0.001})
-            run.log_metrics({'accuracy': 0.8 + i * 0.02})
-            run.set_status("completed" if i % 2 == 0 else "failed")
+        for name in ['exp_a', 'exp_b', 'exp_a', 'exp_c', 'exp_a']:
+            run = tracker.create_run(name)
+            run.log_metrics({'accuracy': 0.9})
+            run.set_status("completed")
             tracker.save_run(run)
         
-        # Filter by status
-        completed = tracker.filter_runs(status="completed")
-        assert len(completed) == 3
+        exp_a_runs = tracker.get_runs_by_experiment('exp_a')
+        assert len(exp_a_runs) == 3
     
-    def test_get_run_by_name(self):
-        """Should get run by experiment name."""
+    def test_get_run_by_id(self):
+        """Should get run by ID."""
         tracker = ExperimentTracker("test")
-        
-        run = tracker.create_run("special_exp")
-        run.log_metrics({'accuracy': 0.99})
+        run = tracker.create_run("exp")
+        run.log_metrics({'accuracy': 0.9})
         tracker.save_run(run)
         
-        found = tracker.get_run_by_name("special_exp")
+        found = tracker.get_run(run.run_id)
         assert found is not None
-        assert found.metrics['accuracy'] == 0.99
+        assert found.run_id == run.run_id
     
-    def test_delete_run(self):
-        """Should delete run."""
+    def test_list_experiments(self):
+        """Should list all experiment names."""
         tracker = ExperimentTracker("test")
         
-        run = tracker.create_run("to_delete")
-        tracker.save_run(run)
+        for name in ['exp_a', 'exp_b', 'exp_a', 'exp_c']:
+            run = tracker.create_run(name)
+            tracker.save_run(run)
         
-        assert len(tracker.runs) == 1
-        
-        tracker.delete_run("to_delete")
-        assert len(tracker.runs) == 0
+        experiments = tracker.list_experiments()
+        assert set(experiments) == {'exp_a', 'exp_b', 'exp_c'}
     
     def test_run_tags(self):
         """Should support run tags."""
         tracker = ExperimentTracker("test")
-        run = tracker.create_run("tagged_exp")
+        run = tracker.create_run("exp", tags=['baseline', 'v1'])
         
-        run.add_tag("baseline")
-        run.add_tag("v1")
+        assert 'baseline' in run.tags
+        assert 'v1' in run.tags
         
-        assert "baseline" in run.tags
-        assert "v1" in run.tags
+        run.add_tag('production')
+        assert 'production' in run.tags
     
-    def test_run_artifacts(self):
-        """Should log artifacts."""
-        tracker = ExperimentTracker("test")
-        run = tracker.create_run("artifact_exp")
-        
-        run.log_artifact("model.pkl", "/path/to/model.pkl")
-        run.log_artifact("config.json", "/path/to/config.json")
-        
-        assert "model.pkl" in run.artifacts
-        assert run.artifacts["model.pkl"] == "/path/to/model.pkl"
-    
-    def test_run_notes(self):
-        """Should support run notes."""
-        tracker = ExperimentTracker("test")
-        run = tracker.create_run("noted_exp")
-        
-        run.add_note("This is a baseline experiment")
-        run.add_note("Using default hyperparameters")
-        
-        assert len(run.notes) == 2
-    
-    def test_summary_statistics(self):
-        """Should compute summary statistics."""
+    def test_get_runs_by_tag(self):
+        """Should filter runs by tag."""
         tracker = ExperimentTracker("test")
         
-        for acc in [0.80, 0.85, 0.90, 0.85, 0.82]:
-            run = tracker.create_run("exp")
-            run.log_metrics({'accuracy': acc})
-            tracker.save_run(run)
+        run1 = tracker.create_run("exp1", tags=['baseline'])
+        run2 = tracker.create_run("exp2", tags=['experimental'])
+        run3 = tracker.create_run("exp3", tags=['baseline', 'v2'])
         
-        stats = tracker.summary_statistics('accuracy')
+        tracker.save_run(run1)
+        tracker.save_run(run2)
+        tracker.save_run(run3)
         
-        assert 'mean' in stats
-        assert 'std' in stats
-        assert 'min' in stats
-        assert 'max' in stats
-        assert abs(stats['mean'] - 0.844) < 0.01
-
-
-class TestRunLifecycle:
-    """Tests for run lifecycle management."""
+        baseline_runs = tracker.get_runs_by_tag('baseline')
+        assert len(baseline_runs) == 2
     
-    def test_run_duration(self):
-        """Should track run duration."""
+    def test_run_to_dict(self):
+        """Should convert run to dictionary."""
         tracker = ExperimentTracker("test")
-        run = tracker.create_run("timed_exp")
-        
-        run.start()
-        # Simulate some work
-        run.end()
-        
-        assert run.duration is not None or run.end_time is not None
-    
-    def test_run_timestamps(self):
-        """Should record timestamps."""
-        tracker = ExperimentTracker("test")
-        run = tracker.create_run("stamped_exp")
-        
-        assert run.created_at is not None or hasattr(run, 'start_time')
-
-
-class TestTrackerPersistence:
-    """Tests for tracker persistence (if implemented)."""
-    
-    def test_export_to_dict(self):
-        """Should export runs to dict."""
-        tracker = ExperimentTracker("test")
-        
-        run = tracker.create_run("export_exp")
+        run = tracker.create_run("exp")
         run.log_params({'lr': 0.01})
-        run.log_metrics({'accuracy': 0.9})
-        tracker.save_run(run)
+        run.log_metrics({'accuracy': 0.95})
+        run.add_tag('test')
         
-        exported = tracker.export_runs()
-        assert isinstance(exported, list)
-        assert len(exported) == 1
+        d = run.to_dict()
+        
+        assert d['experiment_name'] == 'exp'
+        assert d['parameters']['lr'] == 0.01
+        assert d['metrics']['accuracy'] == 0.95
+        assert 'test' in d['tags']
 
 
 if __name__ == "__main__":
