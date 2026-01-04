@@ -195,7 +195,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 - Zero external dependencies (pure Python)
-- Python 3.8+ compatible
+- Python 3.12+ compatible
 - 302 comprehensive tests
 - 327+ public exports
 
@@ -205,7 +205,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 1.0.0 | 2024-01-15 | Initial release with 327+ metrics and utilities |
+| 1.0.0 | 2026-01-04 | Initial release with 327+ metrics and utilities |
 
 ---
 

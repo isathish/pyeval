@@ -4,23 +4,29 @@ Thank you for your interest in contributing to PyEval! This guide will help you 
 
 ---
 
-## Code of Conduct
+## 📋 Code of Conduct
 
 By participating in this project, you agree to maintain a respectful and inclusive environment for everyone.
 
 ---
 
-## How to Contribute
+## 🎯 Ways to Contribute
 
-### Reporting Bugs
+| Contribution Type | Difficulty | Impact |
+|-------------------|------------|--------|
+| 🐛 Bug Reports | Easy | High |
+| 📝 Documentation | Easy | Medium |
+| ✨ Feature Requests | Easy | Medium |
+| 🧪 Writing Tests | Medium | High |
+| 🔧 Bug Fixes | Medium | High |
+| 🚀 New Features | Hard | High |
+
+---
+
+## 🐛 Reporting Bugs
 
 1. **Search existing issues** to avoid duplicates
-2. **Create a new issue** with:
-   - Clear, descriptive title
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Python version and OS
-   - Minimal code example
+2. **Create a new issue** with the following template:
 
 ```markdown
 ### Bug Report
@@ -48,7 +54,9 @@ from pyeval import metric_name
 ```
 ```
 
-### Suggesting Features
+---
+
+## ✨ Suggesting Features
 
 1. **Check existing issues** for similar suggestions
 2. **Create a feature request** with:
@@ -56,9 +64,11 @@ from pyeval import metric_name
    - Proposed API design
    - Examples of how it would work
 
-### Contributing Code
+---
 
-#### Setting Up Development Environment
+## 💻 Contributing Code
+
+### Setting Up Development Environment
 
 ```bash
 # Fork and clone the repository
@@ -66,17 +76,30 @@ git clone https://github.com/YOUR_USERNAME/pyeval.git
 cd pyeval
 
 # Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install development dependencies
 pip install -e ".[dev]"
 
-# Run tests to verify setup
-pytest
+# Verify setup
+pytest tests/ -q
+ruff check pyeval/
+black --check pyeval/ tests/
 ```
 
-#### Development Workflow
+### Development Workflow
+
+```mermaid
+graph LR
+    A[Fork] --> B[Branch]
+    B --> C[Code]
+    C --> D[Test]
+    D --> E[Lint]
+    E --> F[PR]
+    F --> G[Review]
+    G --> H[Merge]
+```
 
 1. **Create a branch** from `main`:
    ```bash
@@ -91,20 +114,22 @@ pytest
 
 4. **Run the test suite**:
    ```bash
-   pytest
-   pytest --cov=pyeval  # With coverage
+   pytest tests/ -v
+   pytest tests/ --cov=pyeval  # With coverage
    ```
 
-5. **Run linting**:
+5. **Run linting and formatting**:
    ```bash
    ruff check pyeval/
-   ruff format pyeval/
+   black pyeval/ tests/
    ```
 
-6. **Commit your changes**:
+6. **Commit your changes** (use conventional commits):
    ```bash
    git add .
    git commit -m "feat: add new metric for X"
+   # or: fix: correct calculation in Y
+   # or: docs: update API reference for Z
    ```
 
 7. **Push and create a Pull Request**:
@@ -114,16 +139,19 @@ pytest
 
 ---
 
-## Coding Standards
+## 📏 Coding Standards
 
 ### Style Guide
 
-- Follow **PEP 8** conventions
-- Use **type hints** for all function signatures
-- Maximum line length: **88 characters** (Black default)
-- Use **descriptive variable names**
+| Rule | Standard |
+|------|----------|
+| Style | PEP 8 |
+| Formatter | Black (88 chars) |
+| Linter | Ruff |
+| Type Hints | Required |
+| Docstrings | Google style |
 
-### Code Structure
+### Code Template
 
 ```python
 """Module docstring describing the module's purpose."""

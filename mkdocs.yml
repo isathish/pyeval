@@ -80,6 +80,7 @@ nav:
 - Home: index.md
 - Getting Started: getting-started.md
 - API Reference:
+  - Overview: api/overview.md
   - ML Metrics: api/ml.md
   - NLP Metrics: api/nlp.md
   - LLM Metrics: api/llm.md
@@ -95,6 +96,12 @@ nav:
   - Validators: advanced/validators.md
   - Pipelines: advanced/pipelines.md
   - Functional Utilities: advanced/functional.md
+- Examples:
+  - Quick Examples: examples/quickstart.md
+  - ML Examples: examples/ml.md
+  - NLP Examples: examples/nlp.md
+  - LLM Examples: examples/llm.md
+  - RAG Examples: examples/rag.md
 - Changelog: changelog.md
 - Contributing: contributing.md
 

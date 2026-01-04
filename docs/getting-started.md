@@ -4,19 +4,27 @@ This guide will help you get up and running with PyEval in minutes.
 
 ## Installation
 
-### Via pip (recommended)
+=== "pip (recommended)"
 
-```bash
-pip install pyeval
-```
+    ```bash
+    pip install pyeval
+    ```
 
-### From Source
+=== "From Source"
 
-```bash
-git clone https://github.com/yourusername/pyeval.git
-cd pyeval
-pip install -e .
-```
+    ```bash
+    git clone https://github.com/yourusername/pyeval.git
+    cd pyeval
+    pip install -e .
+    ```
+
+=== "Development"
+
+    ```bash
+    git clone https://github.com/yourusername/pyeval.git
+    cd pyeval
+    pip install -e ".[dev]"  # Includes test dependencies
+    ```
 
 ### Verify Installation
 
@@ -24,14 +32,17 @@ pip install -e .
 import pyeval
 print(f"PyEval version: {pyeval.__version__}")
 print(f"Available exports: {len([x for x in dir(pyeval) if not x.startswith('_')])}")
+# Output: PyEval version: 1.0.0
+# Output: Available exports: 327
 ```
 
 ## Requirements
 
-- **Python 3.8+**
+- **Python 3.12+**
 - **No external dependencies!**
 
-PyEval is a pure Python library with zero dependencies. It works anywhere Python runs.
+!!! info "Pure Python"
+    PyEval is a pure Python library with zero dependencies. It works anywhere Python runs — edge devices, serverless functions, restricted environments.
 
 ---
 
