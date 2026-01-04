@@ -97,18 +97,21 @@ def bleu_score(references: Union[List[str], List[List[str]]],
         >>> result = bleu_score(refs, cand)
         >>> result['bleu']
     """
-    # Handle single reference
-    if isinstance(references[0], str):
-        references = [references]
-    
     # Default weights
     if weights is None:
         weights = [1.0 / max_n] * max_n
     
-    # Tokenize
+    # Tokenize candidate
     candidate_tokens = tokenize(candidate, lowercase=True, remove_punct=True)
-    reference_tokens_list = [tokenize(ref, lowercase=True, remove_punct=True) 
-                             for ref in references]
+    
+    # Handle references - can be list of strings or list of lists of tokens
+    reference_tokens_list = []
+    for ref in references:
+        if isinstance(ref, str):
+            reference_tokens_list.append(tokenize(ref, lowercase=True, remove_punct=True))
+        elif isinstance(ref, list):
+            # Already tokenized
+            reference_tokens_list.append([t.lower() if isinstance(t, str) else t for t in ref])
     
     # Calculate n-gram precisions
     precisions = []
