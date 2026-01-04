@@ -40,7 +40,7 @@ from pyeval.utils.data_ops import (
 __all__ = [
     # Math operations
     "mean",
-    "variance", 
+    "variance",
     "std",
     "median",
     "percentile",

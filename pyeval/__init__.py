@@ -2,7 +2,7 @@
 PyEval - A Comprehensive Python Evaluation Package
 ===================================================
 
-A pure Python evaluation library for ML, NLP, LLM, RAG, Fairness, Speech, 
+A pure Python evaluation library for ML, NLP, LLM, RAG, Fairness, Speech,
 and Recommendation systems - no third-party dependencies required.
 
 Features:
@@ -418,10 +418,9 @@ from pyeval.aggregators import (
 __all__ = [
     # Version
     "__version__",
-    
     # ML Metrics
     "accuracy_score",
-    "precision_score", 
+    "precision_score",
     "recall_score",
     "f1_score",
     "roc_auc_score",
@@ -465,7 +464,6 @@ __all__ = [
     # Additional regression metrics
     "mean_absolute_percentage_error",
     "explained_variance_score",
-    
     # NLP Metrics
     "bleu_score",
     "rouge_score",
@@ -484,7 +482,6 @@ __all__ = [
     # TER and Distinct-N
     "ter_score",
     "distinct_n",
-    
     # LLM Metrics
     "hallucination_score",
     "answer_relevancy",
@@ -503,7 +500,6 @@ __all__ = [
     "response_diversity",
     # Consistency score
     "consistency_score",
-    
     # RAG Metrics
     "context_relevance",
     "context_precision",
@@ -527,7 +523,6 @@ __all__ = [
     # Retrieval metrics
     "retrieval_f1",
     "retrieval_mrr",
-    
     # Fairness Metrics
     "demographic_parity",
     "equalized_odds",
@@ -542,7 +537,6 @@ __all__ = [
     # TPR/FPR difference
     "true_positive_rate_difference",
     "false_positive_rate_difference",
-    
     # Speech Metrics
     "word_error_rate",
     "character_error_rate",
@@ -564,7 +558,6 @@ __all__ = [
     "mean_opinion_score",
     "speech_intelligibility_index",
     "speech_fluency_score",
-    
     # Recommender Metrics
     "precision_at_k",
     "recall_at_k",
@@ -595,7 +588,6 @@ __all__ = [
     "accuracy_at_k",
     "ranking_correlation",
     "beyond_accuracy_metrics",
-    
     # Statistical Utilities
     "bootstrap_confidence_interval",
     "paired_t_test",
@@ -608,7 +600,6 @@ __all__ = [
     "glass_delta",
     "correlation_coefficient",
     "spearman_correlation",
-    
     # Visualization Utilities
     "confusion_matrix_display",
     "classification_report_display",
@@ -621,21 +612,17 @@ __all__ = [
     "progress_bar",
     "sparkline",
     "error_analysis_display",
-    
     # Evaluator
     "Evaluator",
     "EvaluationReport",
     "mean_average_precision",
     "hit_rate",
     "RecommenderMetrics",
-    
     # Evaluator
     "Evaluator",
     "EvaluationReport",
-    
     # Tracking
     "ExperimentTracker",
-    
     # Decorators
     "timed",
     "timed_result",
@@ -660,7 +647,6 @@ __all__ = [
     "MetricRegistry",
     "metric_registry",
     "MetricLogger",
-    
     # Design Patterns
     "MetricStrategy",
     "AccuracyStrategy",
@@ -686,7 +672,6 @@ __all__ = [
     "create_validation_chain",
     "EvaluationTemplate",
     "ClassificationEvaluation",
-    
     # Validators
     "ValidationResult",
     "Validator",
@@ -710,7 +695,6 @@ __all__ = [
     "validate_range",
     "FieldSchema",
     "SchemaValidator",
-    
     # Callbacks
     "CallbackEvent",
     "CallbackContext",
@@ -725,7 +709,6 @@ __all__ = [
     "CompositeCallback",
     "LambdaCallback",
     "CallbackEvaluator",
-    
     # Pipelines
     "StepType",
     "StepResult",
@@ -736,7 +719,6 @@ __all__ = [
     "create_nlp_pipeline",
     "PipelineRegistry",
     "pipeline_registry",
-    
     # Functional utilities
     "Result",
     "Option",
@@ -763,7 +745,6 @@ __all__ = [
     "threshold_metric",
     "average_metric",
     "weighted_average_metric",
-    
     # Aggregators
     "Aggregator",
     "MeanAggregator",

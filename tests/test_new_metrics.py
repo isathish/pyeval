@@ -4,58 +4,116 @@ Tests for new advanced metrics added to pyeval.
 
 import pytest
 from pyeval.ml import (
-    balanced_accuracy_score, log_loss, brier_score, hamming_loss,
-    jaccard_score, top_k_accuracy, expected_calibration_error,
-    mean_squared_log_error, symmetric_mape, huber_loss, quantile_loss,
-    normalized_rmse, adjusted_rand_score, normalized_mutual_info_score,
-    homogeneity_score, completeness_score, v_measure_score, fowlkes_mallows_score,
-    true_positive_rate, false_positive_rate,
+    balanced_accuracy_score,
+    log_loss,
+    brier_score,
+    hamming_loss,
+    jaccard_score,
+    top_k_accuracy,
+    expected_calibration_error,
+    mean_squared_log_error,
+    symmetric_mape,
+    huber_loss,
+    quantile_loss,
+    normalized_rmse,
+    adjusted_rand_score,
+    normalized_mutual_info_score,
+    homogeneity_score,
+    completeness_score,
+    v_measure_score,
+    fowlkes_mallows_score,
+    true_positive_rate,
+    false_positive_rate,
     # Additional exports
-    specificity_score, matthews_corrcoef, cohen_kappa_score, roc_curve,
-    precision_recall_curve, mean_absolute_percentage_error, explained_variance_score
+    specificity_score,
+    matthews_corrcoef,
+    cohen_kappa_score,
+    roc_curve,
+    precision_recall_curve,
+    mean_absolute_percentage_error,
+    explained_variance_score,
 )
 from pyeval.nlp import (
-    chrf_score, text_entropy, repetition_ratio, compression_ratio,
-    coverage_score, density_score, lexical_diversity, sentence_bleu,
+    chrf_score,
+    text_entropy,
+    repetition_ratio,
+    compression_ratio,
+    coverage_score,
+    density_score,
+    lexical_diversity,
+    sentence_bleu,
     # Additional exports
-    ter_score, distinct_n
+    ter_score,
+    distinct_n,
 )
 from pyeval.llm import (
-    bias_detection, instruction_following_score, multi_turn_coherence,
-    summarization_quality, response_diversity, consistency_score
+    bias_detection,
+    instruction_following_score,
+    multi_turn_coherence,
+    summarization_quality,
+    response_diversity,
+    consistency_score,
 )
 from pyeval.rag import (
-    context_entity_recall, answer_attribution, context_utilization,
-    question_answer_relevance, rag_pipeline_score, context_coverage,
-    faithful_answer_rate, retrieval_f1
+    context_entity_recall,
+    answer_attribution,
+    context_utilization,
+    question_answer_relevance,
+    rag_pipeline_score,
+    context_coverage,
+    faithful_answer_rate,
+    retrieval_f1,
 )
 from pyeval.fairness import (
-    true_positive_rate_difference, false_positive_rate_difference
+    true_positive_rate_difference,
+    false_positive_rate_difference,
 )
 from pyeval.speech import (
-    slot_error_rate, intent_accuracy, phoneme_error_rate,
-    keyword_spotting_metrics, mean_opinion_score, speech_intelligibility_index,
-    fluency_score as speech_fluency_score
+    slot_error_rate,
+    intent_accuracy,
+    phoneme_error_rate,
+    keyword_spotting_metrics,
+    mean_opinion_score,
+    speech_intelligibility_index,
+    fluency_score as speech_fluency_score,
 )
 from pyeval.recommender import (
-    serendipity, gini_index, expected_percentile_ranking, auc_score,
-    inter_list_diversity, entropy_diversity, surprisal, ranking_correlation,
-    beyond_accuracy_metrics
+    serendipity,
+    gini_index,
+    expected_percentile_ranking,
+    auc_score,
+    inter_list_diversity,
+    entropy_diversity,
+    surprisal,
+    ranking_correlation,
+    beyond_accuracy_metrics,
 )
 from pyeval.utils.math_ops import (
-    bootstrap_confidence_interval, paired_t_test, independent_t_test,
-    wilcoxon_signed_rank_test, mann_whitney_u_test, mcnemar_test,
-    cohens_d, hedges_g, glass_delta, correlation_coefficient, spearman_correlation
+    bootstrap_confidence_interval,
+    paired_t_test,
+    independent_t_test,
+    wilcoxon_signed_rank_test,
+    mann_whitney_u_test,
+    mcnemar_test,
+    cohens_d,
+    hedges_g,
+    glass_delta,
+    correlation_coefficient,
+    spearman_correlation,
 )
 from pyeval.utils.viz_ops import (
-    confusion_matrix_display, classification_report_display,
-    horizontal_bar_chart, histogram_display, sparkline, progress_bar
+    confusion_matrix_display,
+    classification_report_display,
+    horizontal_bar_chart,
+    histogram_display,
+    sparkline,
+    progress_bar,
 )
 
 
 class TestNewMLMetrics:
     """Tests for new ML classification, regression and clustering metrics."""
-    
+
     def test_balanced_accuracy(self):
         y_true = [0, 0, 1, 1, 1, 1]
         y_pred = [0, 0, 1, 1, 0, 0]
@@ -63,56 +121,56 @@ class TestNewMLMetrics:
         # Balanced = (1.0 + 0.5) / 2 = 0.75
         result = balanced_accuracy_score(y_true, y_pred)
         assert 0.7 < result < 0.8
-    
+
     def test_log_loss(self):
         y_true = [0, 1, 1, 0]
         y_prob = [0.1, 0.9, 0.8, 0.3]
         result = log_loss(y_true, y_prob)
         assert isinstance(result, float)
         assert result > 0  # Log loss is always positive
-    
+
     def test_brier_score(self):
         y_true = [1, 0, 1, 1]
         y_prob = [0.9, 0.1, 0.8, 0.6]
         result = brier_score(y_true, y_prob)
         assert 0 <= result <= 1
-    
+
     def test_hamming_loss(self):
         y_true = [[1, 0, 1], [0, 1, 1]]
         y_pred = [[1, 0, 0], [0, 1, 1]]
         result = hamming_loss(y_true, y_pred)
-        assert result == pytest.approx(1/6, abs=0.01)
-    
+        assert result == pytest.approx(1 / 6, abs=0.01)
+
     def test_jaccard_score(self):
         y_true = [1, 1, 1, 0, 0]
         y_pred = [1, 1, 0, 0, 1]
         result = jaccard_score(y_true, y_pred)
         assert 0 <= result <= 1
-    
+
     def test_top_k_accuracy(self):
         y_true = [0, 1, 2]
         y_prob = [[0.8, 0.1, 0.1], [0.2, 0.5, 0.3], [0.1, 0.3, 0.6]]
         result = top_k_accuracy(y_true, y_prob, k=2)
         assert result == 1.0  # All correct within top 2
-    
+
     def test_mean_squared_log_error(self):
         y_true = [1, 2, 3, 4]
         y_pred = [1.1, 2.2, 2.8, 4.1]
         result = mean_squared_log_error(y_true, y_pred)
         assert result >= 0
-    
+
     def test_symmetric_mape(self):
         y_true = [100, 200, 300]
         y_pred = [110, 190, 310]
         result = symmetric_mape(y_true, y_pred)
         assert 0 <= result  # sMAPE is non-negative
-    
+
     def test_adjusted_rand_score(self):
         labels_true = [0, 0, 1, 1, 2, 2]
         labels_pred = [0, 0, 1, 1, 1, 2]
         result = adjusted_rand_score(labels_true, labels_pred)
         assert -1 <= result <= 1
-    
+
     def test_v_measure_score(self):
         labels_true = [0, 0, 1, 1, 2, 2]
         labels_pred = [0, 0, 1, 1, 2, 2]
@@ -122,30 +180,30 @@ class TestNewMLMetrics:
 
 class TestNewNLPMetrics:
     """Tests for new NLP metrics."""
-    
+
     def test_chrf_score(self):
         reference = "Hello world test"
         candidate = "Hello world test"
         result = chrf_score(reference, candidate)
-        assert 'chrf' in result
-        assert 0.9 <= result['chrf'] <= 1.0
-    
+        assert "chrf" in result
+        assert 0.9 <= result["chrf"] <= 1.0
+
     def test_text_entropy(self):
         text = "hello hello world world test test"
         result = text_entropy(text)
         assert result > 0  # Entropy should be positive
-    
+
     def test_repetition_ratio(self):
         text = "hello hello world"
         result = repetition_ratio(text)
         assert 0 <= result <= 1
-    
+
     def test_lexical_diversity(self):
         text = "the cat sat on the mat the dog ran"
         result = lexical_diversity(text)
-        assert 'ttr' in result
-        assert 0 < result['ttr'] <= 1
-    
+        assert "ttr" in result
+        assert 0 < result["ttr"] <= 1
+
     def test_sentence_bleu(self):
         reference = "the cat is on the mat"
         hypothesis = "the cat is on mat"
@@ -155,105 +213,107 @@ class TestNewNLPMetrics:
 
 class TestNewLLMMetrics:
     """Tests for new LLM evaluation metrics."""
-    
+
     def test_bias_detection(self):
         text = "The doctor performed surgery"  # Neutral text
         result = bias_detection(text)
-        assert 'bias_score' in result
-        assert 0 <= result['bias_score'] <= 1
-    
+        assert "bias_score" in result
+        assert 0 <= result["bias_score"] <= 1
+
     def test_instruction_following(self):
         instruction = "Write a short sentence about cats"
         response = "Cats are wonderful pets that bring joy to many homes"
         result = instruction_following_score(instruction, response)
-        assert 'instruction_following' in result
-    
+        assert "instruction_following" in result
+
     def test_multi_turn_coherence(self):
         turns = [
-            {'role': 'user', 'content': "What is Python?"},
-            {'role': 'assistant', 'content': "Python is a programming language"},
-            {'role': 'user', 'content': "What can I do with it?"},
-            {'role': 'assistant', 'content': "You can build applications"}
+            {"role": "user", "content": "What is Python?"},
+            {"role": "assistant", "content": "Python is a programming language"},
+            {"role": "user", "content": "What can I do with it?"},
+            {"role": "assistant", "content": "You can build applications"},
         ]
         result = multi_turn_coherence(turns)
-        assert 'coherence' in result
-    
+        assert "coherence" in result
+
     def test_summarization_quality(self):
         source = "Python is a programming language. It is popular for data science."
         summary = "Python is popular for data science."
         result = summarization_quality(source, summary)
-        assert 'quality' in result
-    
+        assert "quality" in result
+
     def test_response_diversity(self):
         responses = ["Hello world", "Hello there", "Hi everyone"]
         result = response_diversity(responses)
-        assert 'diversity' in result
+        assert "diversity" in result
 
 
 class TestNewRAGMetrics:
     """Tests for new RAG metrics."""
-    
+
     def test_context_entity_recall(self):
         contexts = ["John Smith is the CEO of TechCorp"]
         ground_truth = "John Smith leads TechCorp"
         result = context_entity_recall(contexts, ground_truth)
-        assert 'entity_recall' in result
-    
+        assert "entity_recall" in result
+
     def test_answer_attribution(self):
         answer = "Python is great for data science"
-        contexts = ["Python is a popular programming language", 
-                   "Data science uses Python extensively"]
+        contexts = [
+            "Python is a popular programming language",
+            "Data science uses Python extensively",
+        ]
         result = answer_attribution(answer, contexts)
-        assert 'attribution_rate' in result
-    
+        assert "attribution_rate" in result
+
     def test_context_utilization(self):
         answer = "Python is useful for machine learning"
         contexts = ["Python is great for ML", "Java is also popular"]
         result = context_utilization(answer, contexts)
-        assert 'average_utilization' in result
-    
+        assert "average_utilization" in result
+
     def test_question_answer_relevance(self):
         question = "What is Python?"
         answer = "Python is a programming language"
         result = question_answer_relevance(question, answer)
-        assert 'relevance' in result
-    
+        assert "relevance" in result
+
     def test_rag_pipeline_score(self):
         question = "What is machine learning?"
         contexts = ["Machine learning is a subset of AI"]
         answer = "Machine learning is a type of artificial intelligence"
         result = rag_pipeline_score(question, contexts, answer)
-        assert 'overall_score' in result
+        assert "overall_score" in result
 
 
 class TestNewSpeechMetrics:
     """Tests for new speech metrics."""
-    
+
     def test_slot_error_rate(self):
-        ref_slots = {'city': 'Paris', 'date': 'tomorrow'}
-        hyp_slots = {'city': 'Paris', 'date': 'today'}
+        ref_slots = {"city": "Paris", "date": "tomorrow"}
+        hyp_slots = {"city": "Paris", "date": "today"}
         result = slot_error_rate(ref_slots, hyp_slots)
-        assert 'slot_error_rate' in result
-    
+        assert "slot_error_rate" in result
+
     def test_intent_accuracy(self):
-        ref_intents = ['booking', 'query', 'booking']
-        hyp_intents = ['booking', 'query', 'cancel']
+        ref_intents = ["booking", "query", "booking"]
+        hyp_intents = ["booking", "query", "cancel"]
         result = intent_accuracy(ref_intents, hyp_intents)
-        assert 'intent_accuracy' in result
-        assert result['intent_accuracy'] == pytest.approx(2/3, abs=0.01)
-    
+        assert "intent_accuracy" in result
+        assert result["intent_accuracy"] == pytest.approx(2 / 3, abs=0.01)
+
     def test_phoneme_error_rate(self):
-        ref_phonemes = ['AH', 'B', 'AW', 'T']
-        hyp_phonemes = ['AH', 'B', 'AH', 'T']
+        ref_phonemes = ["AH", "B", "AW", "T"]
+        hyp_phonemes = ["AH", "B", "AH", "T"]
         result = phoneme_error_rate(ref_phonemes, hyp_phonemes)
-        assert 'per' in result
-    
+        assert "per" in result
+
     def test_mean_opinion_score(self):
         scores = [4.0, 4.5, 3.5, 4.0, 5.0]
         result = mean_opinion_score(scores)
-        assert 'mos' in result
-        assert 3.5 < result['mos'] < 4.5
-    
+        assert "mos" in result
+        assert 3.5 < result["mos"] < 4.5
+
     def test_speech_intelligibility_index(self):
         result = speech_intelligibility_index(15.0)  # 15 dB SNR
         assert 0 <= result <= 1
@@ -261,153 +321,153 @@ class TestNewSpeechMetrics:
 
 class TestNewRecommenderMetrics:
     """Tests for new recommender metrics."""
-    
+
     def test_serendipity(self):
         recommended = [1, 2, 3, 4, 5]
         relevant = [3, 5, 7]
         expected = [1, 2]  # Popular items
         result = serendipity(recommended, relevant, expected)
         assert 0 <= result <= 1
-    
+
     def test_gini_index(self):
         recommendations = [[1, 2, 3], [1, 2, 4], [1, 3, 5]]
         catalog = [1, 2, 3, 4, 5]
         result = gini_index(recommendations, catalog)
         assert 0 <= result <= 1
-    
+
     def test_inter_list_diversity(self):
         recommendations = [[1, 2, 3], [4, 5, 6], [1, 4, 7]]
         result = inter_list_diversity(recommendations)
         assert 0 <= result <= 1
-    
+
     def test_ranking_correlation(self):
         recommended = [1, 2, 3, 4, 5]
         truth = [1, 3, 2, 5, 4]
         result = ranking_correlation(recommended, truth)
-        assert 'kendall_tau' in result
-        assert 'spearman_rho' in result
+        assert "kendall_tau" in result
+        assert "spearman_rho" in result
 
 
 class TestStatisticalUtilities:
     """Tests for statistical testing utilities."""
-    
+
     def test_bootstrap_ci(self):
         data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        result = bootstrap_confidence_interval(data, 'mean', n_bootstrap=100, seed=42)
-        assert 'ci_lower' in result
-        assert 'ci_upper' in result
-        assert result['ci_lower'] < result['point_estimate'] < result['ci_upper']
-    
+        result = bootstrap_confidence_interval(data, "mean", n_bootstrap=100, seed=42)
+        assert "ci_lower" in result
+        assert "ci_upper" in result
+        assert result["ci_lower"] < result["point_estimate"] < result["ci_upper"]
+
     def test_paired_t_test(self):
         sample1 = [1, 2, 3, 4, 5]
         sample2 = [1.5, 2.5, 3.5, 4.5, 5.5]
         result = paired_t_test(sample1, sample2)
-        assert 't_statistic' in result
-        assert 'p_value' in result
-    
+        assert "t_statistic" in result
+        assert "p_value" in result
+
     def test_independent_t_test(self):
         sample1 = [1, 2, 3, 4, 5]
         sample2 = [2, 3, 4, 5, 6]
         result = independent_t_test(sample1, sample2)
-        assert 't_statistic' in result
-        assert 'cohens_d' in result
-    
+        assert "t_statistic" in result
+        assert "cohens_d" in result
+
     def test_wilcoxon_test(self):
         sample1 = [1, 2, 3, 4, 5]
         sample2 = [1.2, 2.1, 2.9, 4.2, 4.8]
         result = wilcoxon_signed_rank_test(sample1, sample2)
-        assert 'w_statistic' in result
-    
+        assert "w_statistic" in result
+
     def test_mann_whitney_test(self):
         sample1 = [1, 2, 3, 4, 5]
         sample2 = [3, 4, 5, 6, 7]
         result = mann_whitney_u_test(sample1, sample2)
-        assert 'u_statistic' in result
-    
+        assert "u_statistic" in result
+
     def test_mcnemar_test(self):
         table = [[20, 5], [10, 15]]
         result = mcnemar_test(table)
-        assert 'chi_square' in result
-        assert 'p_value' in result
-    
+        assert "chi_square" in result
+        assert "p_value" in result
+
     def test_cohens_d(self):
         sample1 = [1, 2, 3, 4, 5]
         sample2 = [2, 3, 4, 5, 6]
         result = cohens_d(sample1, sample2)
         assert isinstance(result, float)
-    
+
     def test_correlation_coefficient(self):
         x = [1, 2, 3, 4, 5]
         y = [2, 4, 5, 4, 5]
         result = correlation_coefficient(x, y)
-        assert 'r' in result
-        assert 'r_squared' in result
-        assert -1 <= result['r'] <= 1
+        assert "r" in result
+        assert "r_squared" in result
+        assert -1 <= result["r"] <= 1
 
 
 class TestVisualizationUtilities:
     """Tests for ASCII visualization utilities."""
-    
+
     def test_confusion_matrix_display(self):
         matrix = [[50, 10], [5, 35]]
-        result = confusion_matrix_display(matrix, ['Cat', 'Dog'])
-        assert 'CONFUSION MATRIX' in result
-        assert 'Cat' in result
-        assert 'Dog' in result
-    
+        result = confusion_matrix_display(matrix, ["Cat", "Dog"])
+        assert "CONFUSION MATRIX" in result
+        assert "Cat" in result
+        assert "Dog" in result
+
     def test_classification_report_display(self):
         y_true = [0, 0, 1, 1, 2, 2]
         y_pred = [0, 0, 1, 2, 2, 2]
         result = classification_report_display(y_true, y_pred)
-        assert 'CLASSIFICATION REPORT' in result
-        assert 'Precision' in result
-    
+        assert "CLASSIFICATION REPORT" in result
+        assert "Precision" in result
+
     def test_horizontal_bar_chart(self):
-        values = {'A': 0.8, 'B': 0.6, 'C': 0.9}
+        values = {"A": 0.8, "B": 0.6, "C": 0.9}
         result = horizontal_bar_chart(values, title="Test Chart")
-        assert 'Test Chart' in result
-        assert 'A' in result
-    
+        assert "Test Chart" in result
+        assert "A" in result
+
     def test_histogram_display(self):
         values = [1, 2, 2, 3, 3, 3, 4, 4, 5]
         result = histogram_display(values, bins=5, title="Test Histogram")
-        assert 'Test Histogram' in result
-    
+        assert "Test Histogram" in result
+
     def test_sparkline(self):
         values = [1, 2, 5, 3, 8, 4, 2]
         result = sparkline(values)
         assert len(result) > 0
         assert all(c in "▁▂▃▄▅▆▇█" for c in result)
-    
+
     def test_progress_bar(self):
         result = progress_bar(50, 100)
-        assert '50.0%' in result
-        assert '█' in result
+        assert "50.0%" in result
+        assert "█" in result
 
 
 class TestTPRFPR:
     """Tests for True Positive Rate and False Positive Rate."""
-    
+
     def test_true_positive_rate(self):
         y_true = [1, 0, 1, 1, 0, 1]
         y_pred = [1, 0, 0, 1, 0, 1]
         result = true_positive_rate(y_true, y_pred)
         # TPR = TP / (TP + FN) = 3 / (3 + 1) = 0.75
         assert 0.74 <= result <= 0.76
-    
+
     def test_false_positive_rate(self):
         y_true = [1, 0, 1, 1, 0, 1]
         y_pred = [1, 1, 0, 1, 0, 1]
         result = false_positive_rate(y_true, y_pred)
         # FPR = FP / (FP + TN) = 1 / (1 + 1) = 0.5
         assert 0.49 <= result <= 0.51
-    
+
     def test_tpr_perfect_recall(self):
         y_true = [1, 1, 1, 1]
         y_pred = [1, 1, 1, 1]
         result = true_positive_rate(y_true, y_pred)
         assert result == 1.0
-    
+
     def test_fpr_no_false_positives(self):
         y_true = [0, 0, 0, 0]
         y_pred = [0, 0, 0, 0]
@@ -417,101 +477,100 @@ class TestTPRFPR:
 
 class TestConsistencyScore:
     """Tests for LLM consistency score."""
-    
+
     def test_consistency_score_similar_responses(self):
         responses = [
             "Python was created by Guido van Rossum in 1991.",
             "Python was created by Guido van Rossum in the year 1991.",
-            "Guido van Rossum created Python in 1991."
+            "Guido van Rossum created Python in 1991.",
         ]
         result = consistency_score(responses)
-        assert 'consistency' in result
-        assert result['consistency'] > 0.5  # Should be reasonably consistent
-    
+        assert "consistency" in result
+        assert result["consistency"] > 0.5  # Should be reasonably consistent
+
     def test_consistency_score_different_responses(self):
         responses = [
             "Python was created in 1991.",
             "Java is a programming language.",
-            "The weather is nice today."
+            "The weather is nice today.",
         ]
         result = consistency_score(responses)
-        assert 'consistency' in result
-        assert result['consistency'] < 0.5  # Should be inconsistent
-    
+        assert "consistency" in result
+        assert result["consistency"] < 0.5  # Should be inconsistent
+
     def test_consistency_score_single_response(self):
         responses = ["Only one response"]
         result = consistency_score(responses)
-        assert result['consistency'] == 1.0
+        assert result["consistency"] == 1.0
 
 
 class TestContextCoverage:
     """Tests for RAG context coverage."""
-    
+
     def test_context_coverage_full(self):
         question = "What is Python and who created it?"
         contexts = [
             "Python is a programming language.",
-            "Python was created by Guido van Rossum."
+            "Python was created by Guido van Rossum.",
         ]
         result = context_coverage(question, contexts)
-        assert 'coverage' in result
-        assert result['coverage'] > 0.5
-    
+        assert "coverage" in result
+        assert result["coverage"] > 0.5
+
     def test_context_coverage_partial(self):
         question = "What is Python and who created it?"
         contexts = ["Python is a programming language."]  # Missing creator info
         result = context_coverage(question, contexts)
-        assert 'coverage' in result
-        assert result['question_term_coverage'] > 0
-    
+        assert "coverage" in result
+        assert result["question_term_coverage"] > 0
+
     def test_context_coverage_empty(self):
         question = "What is Python?"
         contexts = []
         result = context_coverage(question, contexts)
-        assert result['coverage'] == 0.0
-    
+        assert result["coverage"] == 0.0
+
     def test_context_coverage_with_aspects(self):
         question = "What is machine learning?"
         contexts = ["Machine learning is a type of artificial intelligence."]
-        result = context_coverage(question, contexts, required_aspects=["AI", "algorithms"])
-        assert 'covered_aspects' in result
-        assert 'missing_aspects' in result
+        result = context_coverage(
+            question, contexts, required_aspects=["AI", "algorithms"]
+        )
+        assert "covered_aspects" in result
+        assert "missing_aspects" in result
 
 
 class TestFaithfulAnswerRate:
     """Tests for RAG faithful answer rate."""
-    
+
     def test_faithful_answer_rate_all_faithful(self):
-        answers = [
-            "Python was created by Guido.",
-            "Python is a programming language."
-        ]
+        answers = ["Python was created by Guido.", "Python is a programming language."]
         contexts_list = [
             ["Python was created by Guido van Rossum."],
-            ["Python is a popular programming language."]
+            ["Python is a popular programming language."],
         ]
         result = faithful_answer_rate(answers, contexts_list)
-        assert 'faithful_rate' in result
-        assert result['faithful_rate'] > 0.5
-    
+        assert "faithful_rate" in result
+        assert result["faithful_rate"] > 0.5
+
     def test_faithful_answer_rate_mixed(self):
         answers = [
             "Python was created by Guido.",
-            "Python is the fastest language in the world."  # Not supported
+            "Python is the fastest language in the world.",  # Not supported
         ]
         contexts_list = [
             ["Python was created by Guido van Rossum."],
-            ["Python is a programming language."]  # No speed claim
+            ["Python is a programming language."],  # No speed claim
         ]
         result = faithful_answer_rate(answers, contexts_list)
-        assert 'faithful_rate' in result
-        assert result['total_answers'] == 2
-    
+        assert "faithful_rate" in result
+        assert result["total_answers"] == 2
+
     def test_faithful_answer_rate_empty(self):
         result = faithful_answer_rate([], [])
-        assert result['faithful_rate'] == 0.0
-        assert result['total_answers'] == 0
-    
+        assert result["faithful_rate"] == 0.0
+        assert result["total_answers"] == 0
+
     def test_faithful_answer_rate_mismatched_lengths(self):
         with pytest.raises(ValueError):
             faithful_answer_rate(["answer"], [["ctx1"], ["ctx2"]])
@@ -519,45 +578,45 @@ class TestFaithfulAnswerRate:
 
 class TestAdditionalMLMetrics:
     """Tests for additional ML metrics exports."""
-    
+
     def test_specificity_score(self):
         y_true = [1, 0, 1, 0, 1, 0]
         y_pred = [1, 0, 1, 1, 1, 0]
         result = specificity_score(y_true, y_pred)
         # TN = 2, FP = 1, Specificity = TN / (TN + FP) = 2/3
         assert 0.6 <= result <= 0.7
-    
+
     def test_matthews_corrcoef(self):
         y_true = [1, 0, 1, 1, 0, 1]
         y_pred = [1, 0, 1, 0, 0, 1]
         result = matthews_corrcoef(y_true, y_pred)
         assert -1 <= result <= 1
-    
+
     def test_cohen_kappa_score(self):
         y_true = [1, 0, 1, 1, 0, 1]
         y_pred = [1, 0, 1, 0, 0, 1]
         result = cohen_kappa_score(y_true, y_pred)
         assert -1 <= result <= 1
-    
+
     def test_roc_curve(self):
         y_true = [0, 0, 1, 1]
         y_scores = [0.1, 0.4, 0.35, 0.8]
         fpr, tpr, thresholds = roc_curve(y_true, y_scores)
         assert len(fpr) == len(tpr) == len(thresholds)
         assert fpr[0] == 0.0 and tpr[0] == 0.0
-    
+
     def test_precision_recall_curve(self):
         y_true = [0, 0, 1, 1]
         y_scores = [0.1, 0.4, 0.35, 0.8]
         precision, recall, thresholds = precision_recall_curve(y_true, y_scores)
         assert len(precision) == len(recall) == len(thresholds)
-    
+
     def test_mean_absolute_percentage_error(self):
         y_true = [100, 200, 300]
         y_pred = [110, 190, 330]
         result = mean_absolute_percentage_error(y_true, y_pred)
         assert result >= 0
-    
+
     def test_explained_variance_score(self):
         y_true = [3, -0.5, 2, 7]
         y_pred = [2.5, 0.0, 2, 8]
@@ -567,14 +626,14 @@ class TestAdditionalMLMetrics:
 
 class TestAdditionalNLPMetrics:
     """Tests for additional NLP metrics exports."""
-    
+
     def test_ter_score(self):
         reference = "the cat sat on the mat"
         candidate = "the cat is on the mat"
         result = ter_score(reference, candidate)
-        assert 'ter' in result
-        assert result['ter'] >= 0
-    
+        assert "ter" in result
+        assert result["ter"] >= 0
+
     def test_distinct_n(self):
         texts = ["hello world hello", "world hello world"]
         result = distinct_n(texts, n=1)
@@ -583,7 +642,7 @@ class TestAdditionalNLPMetrics:
 
 class TestAdditionalRAGMetrics:
     """Tests for additional RAG metrics exports."""
-    
+
     def test_retrieval_f1(self):
         retrieved = ["doc1", "doc2", "doc3"]
         relevant = ["doc1", "doc3", "doc5"]
@@ -593,17 +652,17 @@ class TestAdditionalRAGMetrics:
 
 class TestFairnessRateDifferences:
     """Tests for fairness TPR/FPR difference metrics."""
-    
+
     def test_true_positive_rate_difference(self):
         y_true = [1, 0, 1, 1, 0, 0, 1, 0]
         y_pred = [1, 0, 1, 0, 0, 1, 1, 0]
-        groups = ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']
+        groups = ["A", "A", "A", "A", "B", "B", "B", "B"]
         result = true_positive_rate_difference(y_true, y_pred, groups)
         assert 0 <= result <= 1
-    
+
     def test_false_positive_rate_difference(self):
         y_true = [1, 0, 1, 1, 0, 0, 1, 0]
         y_pred = [1, 0, 1, 0, 0, 1, 1, 0]
-        groups = ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']
+        groups = ["A", "A", "A", "A", "B", "B", "B", "B"]
         result = false_positive_rate_difference(y_true, y_pred, groups)
         assert 0 <= result <= 1
