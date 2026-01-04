@@ -1,75 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://yourusername.github.io/pyeval/</loc>
+         <loc>https://isathish.github.io/pyeval/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/changelog/</loc>
+         <loc>https://isathish.github.io/pyeval/changelog/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/contributing/</loc>
+         <loc>https://isathish.github.io/pyeval/contributing/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/getting-started/</loc>
+         <loc>https://isathish.github.io/pyeval/getting-started/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/advanced/decorators/</loc>
+         <loc>https://isathish.github.io/pyeval/advanced/decorators/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/advanced/functional/</loc>
+         <loc>https://isathish.github.io/pyeval/advanced/functional/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/advanced/patterns/</loc>
+         <loc>https://isathish.github.io/pyeval/advanced/patterns/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/advanced/pipelines/</loc>
+         <loc>https://isathish.github.io/pyeval/advanced/pipelines/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/advanced/validators/</loc>
+         <loc>https://isathish.github.io/pyeval/advanced/validators/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/fairness/</loc>
+         <loc>https://isathish.github.io/pyeval/api/fairness/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/llm/</loc>
+         <loc>https://isathish.github.io/pyeval/api/llm/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/ml/</loc>
+         <loc>https://isathish.github.io/pyeval/api/ml/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/nlp/</loc>
+         <loc>https://isathish.github.io/pyeval/api/nlp/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/rag/</loc>
+         <loc>https://isathish.github.io/pyeval/api/overview/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/recommender/</loc>
+         <loc>https://isathish.github.io/pyeval/api/rag/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/speech/</loc>
+         <loc>https://isathish.github.io/pyeval/api/recommender/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/statistical/</loc>
+         <loc>https://isathish.github.io/pyeval/api/speech/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://yourusername.github.io/pyeval/api/visualization/</loc>
+         <loc>https://isathish.github.io/pyeval/api/statistical/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://isathish.github.io/pyeval/api/visualization/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://isathish.github.io/pyeval/examples/llm/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://isathish.github.io/pyeval/examples/ml/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://isathish.github.io/pyeval/examples/nlp/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://isathish.github.io/pyeval/examples/quickstart/</loc>
+         <lastmod>2026-01-04</lastmod>
+    </url>
+    <url>
+         <loc>https://isathish.github.io/pyeval/examples/rag/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
 </urlset>

@@ -1,8 +1,8 @@
-# PyEval Documentation
+# PyEval
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/PyEval-v1.0.0-blue?style=for-the-badge" alt="Version">
+![PyEval](https://img.shields.io/badge/PyEval-v1.0.0-blue?style=for-the-badge)
 
 **A Comprehensive Pure Python Evaluation Framework**
 
@@ -17,34 +17,39 @@
 
 ---
 
-## 🎯 What is PyEval?
+## What is PyEval?
 
 PyEval is a **zero-dependency** evaluation library for Machine Learning, NLP, LLM, RAG, Fairness, Speech, and Recommender systems. Every metric is implemented in **pure Python** — no NumPy, no scikit-learn, no external packages required.
 
-!!! success "Why Choose PyEval?"
-    - **🚫 Zero Dependencies** — Works anywhere Python runs (edge devices, serverless, restricted environments)
-    - **📦 327+ Public APIs** — Most comprehensive evaluation library available
-    - **🔧 Unified Interface** — Consistent API design across all domains
-    - **🧪 Battle-Tested** — 302 tests ensure reliability and correctness
-    - **📊 Built-in Viz** — ASCII charts, confusion matrices, sparklines included
+### Why Choose PyEval?
+
+| Feature | Description |
+|---------|-------------|
+| 🚫 **Zero Dependencies** | Works anywhere Python runs — edge devices, serverless, restricted environments |
+| 📦 **327+ Public APIs** | The most comprehensive evaluation library available |
+| 🔧 **Unified Interface** | Consistent API design across all domains |
+| 🧪 **Battle-Tested** | 302 tests ensure reliability and correctness |
+| 📊 **Built-in Viz** | ASCII charts, confusion matrices, sparklines included |
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-=== "pip (recommended)"
+### Installation
 
-    ```bash
-    pip install pyeval
-    ```
+**Using pip (recommended):**
 
-=== "From Source"
+```bash
+pip install pyeval
+```
 
-    ```bash
-    git clone https://github.com/yourusername/pyeval.git
-    cd pyeval
-    pip install -e .
-    ```
+**From source:**
+
+```bash
+git clone https://github.com/isathish/pyeval.git
+cd pyeval
+pip install -e .
+```
 
 ### 30-Second Example
 
@@ -69,166 +74,182 @@ print(confusion_matrix(y_true, y_pred, display=True))
 
 ---
 
-## 📚 Documentation Overview
+## Documentation Overview
 
-<div class="grid cards" markdown>
+### Getting Started
 
--   :material-rocket-launch:{ .lg .middle } **Getting Started**
+New to PyEval? Start with the [Getting Started Guide](getting-started.md) for installation and basic usage.
 
-    ---
+### API Reference
 
-    New to PyEval? Start here for installation and basic usage.
+| Module | Description | Link |
+|--------|-------------|------|
+| **ML Metrics** | Classification, Regression, Clustering — 40+ metrics | [View API](api/ml.md) |
+| **NLP Metrics** | BLEU, ROUGE, METEOR, TER, BERTScore, and more | [View API](api/nlp.md) |
+| **LLM Evaluation** | Toxicity, Hallucination, Coherence, Bias detection | [View API](api/llm.md) |
+| **RAG Evaluation** | Context Relevance, Groundedness, Faithfulness | [View API](api/rag.md) |
+| **Fairness Metrics** | Demographic Parity, Equalized Odds, Disparate Impact | [View API](api/fairness.md) |
+| **Speech Metrics** | WER, CER, MER, and speech quality evaluation | [View API](api/speech.md) |
+| **Recommender Metrics** | Precision@K, NDCG, MAP, MRR, Diversity, Coverage | [View API](api/recommender.md) |
+| **Statistical Utilities** | Hypothesis testing, confidence intervals, distributions | [View API](api/statistical.md) |
+| **Visualization** | ASCII charts, sparklines, progress bars | [View API](api/visualization.md) |
 
-    [:octicons-arrow-right-24: Quick Start Guide](getting-started.md)
+### Advanced Features
 
--   :material-chart-bar:{ .lg .middle } **ML Metrics**
-
-    ---
-
-    Classification, Regression, Clustering — 40+ metrics.
-
-    [:octicons-arrow-right-24: ML API Reference](api/ml.md)
-
--   :material-text:{ .lg .middle } **NLP Metrics**
-
-    ---
-
-    BLEU, ROUGE, METEOR, TER, BERTScore, and more.
-
-    [:octicons-arrow-right-24: NLP API Reference](api/nlp.md)
-
--   :material-robot:{ .lg .middle } **LLM Evaluation**
-
-    ---
-
-    Toxicity, Hallucination, Coherence, Bias detection.
-
-    [:octicons-arrow-right-24: LLM API Reference](api/llm.md)
-
--   :material-database-search:{ .lg .middle } **RAG Evaluation**
-
-    ---
-
-    Context Relevance, Groundedness, Faithfulness metrics.
-
-    [:octicons-arrow-right-24: RAG API Reference](api/rag.md)
-
--   :material-scale-balance:{ .lg .middle } **Fairness Metrics**
-
-    ---
-
-    Demographic Parity, Equalized Odds, Disparate Impact.
-
-    [:octicons-arrow-right-24: Fairness API Reference](api/fairness.md)
-
--   :material-microphone:{ .lg .middle } **Speech Metrics**
-
-    ---
-
-    WER, CER, MER, and speech quality evaluation.
-
-    [:octicons-arrow-right-24: Speech API Reference](api/speech.md)
-
--   :material-star:{ .lg .middle } **Recommender Metrics**
-
-    ---
-
-    Precision@K, NDCG, MAP, MRR, Diversity, Coverage.
-
-    [:octicons-arrow-right-24: Recommender API Reference](api/recommender.md)
-
-</div>
+| Feature | Description | Link |
+|---------|-------------|------|
+| **Pipelines** | Chain evaluation steps together | [Learn More](advanced/pipelines.md) |
+| **Decorators** | Add validation, logging, retry logic | [Learn More](advanced/decorators.md) |
+| **Validators** | Type checking and data validation | [Learn More](advanced/validators.md) |
+| **Design Patterns** | Reusable patterns for evaluation | [Learn More](advanced/patterns.md) |
+| **Functional Utilities** | Map, filter, reduce for metrics | [Learn More](advanced/functional.md) |
 
 ---
 
-## 🏗️ Advanced Features
+## Feature Highlights
 
-<div class="grid cards" markdown>
+### Complete Domain Coverage
 
--   :material-pipe:{ .lg .middle } **[Pipelines](advanced/pipelines.md)**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        PyEval v1.0.0                            │
+├─────────────────────────────────────────────────────────────────┤
+│  ML            │  NLP           │  LLM           │  RAG         │
+│  ├─ classify   │  ├─ bleu       │  ├─ toxicity   │  ├─ context  │
+│  ├─ regress    │  ├─ rouge      │  ├─ coherence  │  ├─ ground   │
+│  ├─ cluster    │  ├─ meteor     │  ├─ hallucin   │  ├─ faithful │
+│  └─ rank       │  └─ ter        │  └─ bias       │  └─ answer   │
+├─────────────────────────────────────────────────────────────────┤
+│  Fairness      │  Speech        │  Recommender   │  Utilities   │
+│  ├─ parity     │  ├─ wer        │  ├─ precision  │  ├─ stats    │
+│  ├─ equality   │  ├─ cer        │  ├─ ndcg       │  ├─ viz      │
+│  └─ calibrate  │  └─ mer        │  └─ diversity  │  └─ valid    │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-    ---
+### Zero Dependencies
 
-    Build evaluation workflows with fluent API.
+PyEval works in environments where other libraries can't:
 
--   :material-cog:{ .lg .middle } **[Design Patterns](advanced/patterns.md)**
+- **Edge Devices** — Raspberry Pi, microcontrollers, IoT
+- **Serverless** — AWS Lambda, Azure Functions, Google Cloud Functions
+- **Restricted Environments** — Air-gapped systems, secure facilities
+- **Embedded Systems** — No package manager required
+- **Minimal Docker** — Tiny container images
 
-    ---
+### Consistent API Design
 
-    Strategy, Factory, Composite patterns for extensibility.
+All metrics follow the same patterns:
 
--   :material-function:{ .lg .middle } **[Functional API](advanced/functional.md)**
+```python
+# Pattern 1: Simple comparison
+score = metric_function(y_true, y_pred)
 
-    ---
+# Pattern 2: With options
+score = metric_function(y_true, y_pred, **options)
 
-    Higher-order functions for metric composition.
-
--   :material-shield-check:{ .lg .middle } **[Validators](advanced/validators.md)**
-
-    ---
-
-    Input validation and schema enforcement.
-
--   :material-decorator:{ .lg .middle } **[Decorators](advanced/decorators.md)**
-
-    ---
-
-    Caching, timing, retry logic for metrics.
-
-</div>
-
----
-
-## 📊 Feature Comparison
-
-| Feature | PyEval | scikit-learn | evaluate (HF) | torchmetrics |
-|---------|:------:|:------------:|:-------------:|:------------:|
-| Zero Dependencies | ✅ | ❌ | ❌ | ❌ |
-| ML Metrics | ✅ | ✅ | ⚠️ | ✅ |
-| NLP Metrics | ✅ | ❌ | ✅ | ⚠️ |
-| LLM Metrics | ✅ | ❌ | ⚠️ | ❌ |
-| RAG Metrics | ✅ | ❌ | ⚠️ | ❌ |
-| Fairness Metrics | ✅ | ❌ | ❌ | ⚠️ |
-| Speech Metrics | ✅ | ❌ | ✅ | ⚠️ |
-| Recommender Metrics | ✅ | ❌ | ❌ | ⚠️ |
-| Built-in Viz | ✅ | ⚠️ | ❌ | ❌ |
-| Edge/Serverless Ready | ✅ | ❌ | ❌ | ❌ |
+# Pattern 3: Batch processing  
+scores = [metric_function(t, p) for t, p in zip(true_batch, pred_batch)]
+```
 
 ---
 
-## 💡 Use Cases
+## Quick Examples by Domain
 
-### When to Use PyEval
+### Machine Learning
 
-- **Edge Deployment** — Evaluate models on IoT devices, mobile, or embedded systems
-- **Serverless Functions** — No cold start penalty from heavy dependencies
-- **Restricted Environments** — Corporate policies prohibiting certain packages
-- **CI/CD Pipelines** — Fast, lightweight evaluation in automated workflows
-- **Educational Projects** — Learn evaluation concepts without dependency complexity
-- **Multi-Domain Evaluation** — One library for ML, NLP, LLM, and more
+```python
+from pyeval import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    mean_squared_error, r2_score, silhouette_score
+)
+
+# Classification
+y_true = [1, 0, 1, 1, 0, 1, 0, 0]
+y_pred = [1, 0, 0, 1, 0, 1, 1, 0]
+
+print(f"Accuracy:  {accuracy_score(y_true, y_pred):.4f}")
+print(f"Precision: {precision_score(y_true, y_pred):.4f}")
+print(f"Recall:    {recall_score(y_true, y_pred):.4f}")
+print(f"F1:        {f1_score(y_true, y_pred):.4f}")
+```
+
+### Natural Language Processing
+
+```python
+from pyeval import bleu_score, rouge_score, meteor_score
+
+reference = "The cat sat on the mat"
+hypothesis = "A cat was sitting on the mat"
+
+print(f"BLEU:   {bleu_score(reference, hypothesis):.4f}")
+print(f"ROUGE:  {rouge_score(reference, hypothesis)}")
+print(f"METEOR: {meteor_score(reference, hypothesis):.4f}")
+```
+
+### LLM Evaluation
+
+```python
+from pyeval import (
+    toxicity_score, coherence_score, 
+    hallucination_score, readability_score
+)
+
+text = "This is a sample generated response from an LLM."
+context = "Information about the topic being discussed."
+
+print(f"Toxicity:     {toxicity_score(text):.4f}")
+print(f"Coherence:    {coherence_score(text):.4f}")
+print(f"Readability:  {readability_score(text):.4f}")
+```
+
+### RAG Evaluation
+
+```python
+from pyeval import (
+    context_relevance_score, groundedness_score,
+    answer_relevance_score, faithfulness_score
+)
+
+query = "What is machine learning?"
+context = "Machine learning is a subset of AI that enables systems to learn."
+answer = "Machine learning is an AI technique for learning from data."
+
+print(f"Context Relevance: {context_relevance_score(query, context):.4f}")
+print(f"Groundedness:      {groundedness_score(answer, context):.4f}")
+print(f"Answer Relevance:  {answer_relevance_score(query, answer):.4f}")
+```
 
 ---
 
-## 📈 What's New in v1.0.0
+## Comparison with Other Libraries
 
-- ✅ **327+ evaluation metrics** across 9 domains
-- ✅ **Zero dependencies** — pure Python implementation
-- ✅ **Statistical testing** utilities (t-test, bootstrap, McNemar)
-- ✅ **ASCII visualizations** (confusion matrix, charts, sparklines)
-- ✅ **Design patterns** (Strategy, Factory, Composite, Pipeline)
-- ✅ **Functional utilities** (Result/Option monads, curry, compose)
+| Feature | PyEval | scikit-learn | Evaluate (HF) | TorchMetrics |
+|---------|--------|--------------|---------------|--------------|
+| **Dependencies** | None | NumPy, SciPy | 15+ packages | PyTorch |
+| **ML Metrics** | ✅ 40+ | ✅ 30+ | ⚠️ Limited | ✅ 25+ |
+| **NLP Metrics** | ✅ 20+ | ❌ | ✅ 20+ | ⚠️ Limited |
+| **LLM Metrics** | ✅ 15+ | ❌ | ⚠️ Limited | ❌ |
+| **RAG Metrics** | ✅ 10+ | ❌ | ❌ | ❌ |
+| **Fairness** | ✅ 10+ | ❌ | ❌ | ❌ |
+| **Speech** | ✅ 5+ | ❌ | ⚠️ Limited | ❌ |
+| **Recommender** | ✅ 10+ | ❌ | ❌ | ❌ |
+| **Edge Deploy** | ✅ | ❌ | ❌ | ❌ |
+| **Serverless** | ✅ | ⚠️ | ⚠️ | ❌ |
 
 ---
 
-## 🤝 Contributing
+## Get Involved
 
-We welcome contributions! See our [Contributing Guide](contributing.md) for details.
+- **[GitHub Repository](https://github.com/isathish/pyeval)** — Star us, report issues, contribute
+- **[Contributing Guide](contributing.md)** — How to contribute to PyEval
+- **[Changelog](changelog.md)** — What's new in each release
 
 ---
 
-## 📜 License
+## License
 
-PyEval is released under the [MIT License](https://opensource.org/licenses/MIT).
+PyEval is released under the **MIT License**. See the [LICENSE](https://github.com/isathish/pyeval/blob/main/LICENSE) file for details.
 
 ---
 
@@ -236,6 +257,6 @@ PyEval is released under the [MIT License](https://opensource.org/licenses/MIT).
 
 **Made with ❤️ for the ML community**
 
-[GitHub](https://github.com/yourusername/pyeval) · [PyPI](https://pypi.org/project/pyeval/) · [Documentation](https://yourusername.github.io/pyeval)
+*Zero dependencies. Maximum evaluation coverage.*
 
 </div>

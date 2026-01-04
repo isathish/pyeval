@@ -1,80 +1,72 @@
-site_name: PyEval Documentation
+site_name: PyEval
 site_description: A comprehensive pure Python evaluation framework for ML, NLP, LLM, RAG, Fairness, Speech, and Recommender systems
-site_author: PyEval Team
-site_url: https://yourusername.github.io/pyeval
+site_author: Sathish Kumar
+site_url: https://isathish.github.io/pyeval/
 
-repo_name: yourusername/pyeval
-repo_url: https://github.com/yourusername/pyeval
+repo_name: isathish/pyeval
+repo_url: https://github.com/isathish/pyeval
 
-copyright: Copyright &copy; 2024-2026 PyEval Team
+copyright: Copyright &copy; 2024-2026 Sathish Kumar
 
 theme:
   name: material
   features:
   - navigation.tabs
   - navigation.sections
-  - navigation.expand
   - navigation.top
+  - navigation.indexes
   - search.suggest
   - search.highlight
-  - content.tabs.link
   - content.code.copy
   - content.code.annotate
   language: en
   palette:
   - scheme: default
-    primary: indigo
-    accent: indigo
+    primary: deep purple
+    accent: deep purple
     toggle:
       icon: material/brightness-7
       name: Switch to dark mode
   - scheme: slate
-    primary: indigo
-    accent: indigo
+    primary: deep purple
+    accent: deep purple
     toggle:
       icon: material/brightness-4
       name: Switch to light mode
   font:
-    text: Roboto
-    code: Roboto Mono
+    text: Inter
+    code: JetBrains Mono
   icon:
-    logo: material/chart-bar
+    logo: material/chart-box
+    repo: fontawesome/brands/github
 
 plugins:
-- search:
-    separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
-- minify:
-    minify_html: true
+- search
 
 extra:
   social:
   - icon: fontawesome/brands/github
-    link: https://github.com/yourusername/pyeval
+    link: https://github.com/isathish/pyeval
   - icon: fontawesome/brands/python
     link: https://pypi.org/project/pyeval/
 
 markdown_extensions:
 - pymdownx.highlight:
     anchor_linenums: true
+    line_spans: __span
+    pygments_lang_class: true
 - pymdownx.inlinehilite
 - pymdownx.snippets
-- admonition
-- pymdownx.arithmatex:
-    generic: true
-- footnotes
-- pymdownx.details
 - pymdownx.superfences
-- pymdownx.mark
-- attr_list
-- pymdownx.emoji:
-    emoji_index: !!python/name:material.extensions.emoji.twemoji ""
-    emoji_generator: !!python/name:material.extensions.emoji.to_svg ""
-- md_in_html
-- pymdownx.tabbed:
-    alternate_style: true
+- pymdownx.details
+- admonition
 - tables
+- attr_list
+- md_in_html
 - toc:
     permalink: true
+- pymdownx.tabbed:
+    alternate_style: true
 
 nav:
 - Home: index.md
@@ -104,6 +96,3 @@ nav:
   - RAG Examples: examples/rag.md
 - Changelog: changelog.md
 - Contributing: contributing.md
-
-extra_css:
-- stylesheets/extra.css

@@ -4,27 +4,27 @@ This guide will help you get up and running with PyEval in minutes.
 
 ## Installation
 
-=== "pip (recommended)"
+### Using pip (recommended)
 
-    ```bash
-    pip install pyeval
-    ```
+```bash
+pip install pyeval
+```
 
-=== "From Source"
+### From Source
 
-    ```bash
-    git clone https://github.com/yourusername/pyeval.git
-    cd pyeval
-    pip install -e .
-    ```
+```bash
+git clone https://github.com/isathish/pyeval.git
+cd pyeval
+pip install -e .
+```
 
-=== "Development"
+### Development Setup
 
-    ```bash
-    git clone https://github.com/yourusername/pyeval.git
-    cd pyeval
-    pip install -e ".[dev]"  # Includes test dependencies
-    ```
+```bash
+git clone https://github.com/isathish/pyeval.git
+cd pyeval
+pip install -e ".[dev]"  # Includes test dependencies
+```
 
 ### Verify Installation
 
@@ -36,13 +36,14 @@ print(f"Available exports: {len([x for x in dir(pyeval) if not x.startswith('_')
 # Output: Available exports: 327
 ```
 
+---
+
 ## Requirements
 
 - **Python 3.12+**
 - **No external dependencies!**
 
-!!! info "Pure Python"
-    PyEval is a pure Python library with zero dependencies. It works anywhere Python runs — edge devices, serverless functions, restricted environments.
+> **Note:** PyEval is a pure Python library with zero dependencies. It works anywhere Python runs — edge devices, serverless functions, restricted environments.
 
 ---
 
@@ -148,73 +149,193 @@ eo = equalized_odds(y_true, y_pred, sensitive)
 print(f"Equalized Odds:     {eo['eo_difference']:.4f}")
 ```
 
+### Recommender Systems
+
+```python
+from pyeval import precision_at_k, recall_at_k, ndcg_at_k, mrr
+
+# User preferences (1 = relevant, 0 = not relevant)
+actual = [1, 0, 1, 1, 0, 0, 1, 0, 1, 1]
+predicted_ranking = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]
+
+print(f"Precision@5: {precision_at_k(actual, predicted_ranking, k=5):.4f}")
+print(f"Recall@5:    {recall_at_k(actual, predicted_ranking, k=5):.4f}")
+print(f"NDCG@5:      {ndcg_at_k(actual, predicted_ranking, k=5):.4f}")
+print(f"MRR:         {mrr(actual, predicted_ranking):.4f}")
+```
+
+### Speech Recognition
+
+```python
+from pyeval import word_error_rate, character_error_rate
+
+reference = "the quick brown fox jumps over the lazy dog"
+hypothesis = "the quick brown fox jumped over a lazy dog"
+
+print(f"WER: {word_error_rate(reference, hypothesis):.4f}")
+print(f"CER: {character_error_rate(reference, hypothesis):.4f}")
+```
+
 ---
 
-## Core Concepts
+## Built-in Visualization
 
-### Metric Functions
+PyEval includes ASCII-based visualization that works anywhere:
 
-All metric functions in PyEval follow a consistent pattern:
+### Confusion Matrix
 
 ```python
-def metric_function(y_true, y_pred, **kwargs) -> float | dict:
-    """
-    Compute a specific metric.
-    
-    Args:
-        y_true: Ground truth values
-        y_pred: Predicted values
-        **kwargs: Additional metric-specific parameters
-    
-    Returns:
-        Either a single float score or a dictionary with detailed metrics
-    """
+from pyeval import confusion_matrix
+
+y_true = [1, 0, 1, 1, 0, 1, 0, 0]
+y_pred = [1, 0, 0, 1, 0, 1, 1, 0]
+
+# Display ASCII confusion matrix
+cm = confusion_matrix(y_true, y_pred, display=True)
 ```
 
-### Metric Classes
-
-For computing multiple related metrics at once, use metric classes:
-
-```python
-from pyeval import ClassificationMetrics, RegressionMetrics, NLPMetrics
-
-# Classification
-cm = ClassificationMetrics()
-results = cm.compute(y_true, y_pred)
-
-# Regression
-rm = RegressionMetrics()
-results = rm.compute(y_true, y_pred)
-
-# NLP
-nm = NLPMetrics()
-results = nm.compute(references, hypotheses)
+Output:
+```
+         Predicted
+         0    1
+       ┌────┬────┐
+    0  │ 3  │ 1  │
+Actual ├────┼────┤
+    1  │ 1  │ 3  │
+       └────┴────┘
 ```
 
-### Evaluator Class
-
-For complex evaluation pipelines, use the unified `Evaluator`:
+### Sparklines
 
 ```python
-from pyeval import Evaluator
+from pyeval import sparkline
 
-evaluator = Evaluator("My Evaluation")
+values = [1, 4, 2, 8, 5, 7, 3, 9, 6]
+print(sparkline(values))
+# Output: ▁▃▂█▄▆▂▇▅
+```
 
-# Add and run evaluations
-report = evaluator.evaluate_classification(y_true, y_pred)
-print(report.summary())
+### Progress Bars
 
-# Compare multiple reports
-print(evaluator.compare_reports())
+```python
+from pyeval import progress_bar
+
+# Simple progress
+print(progress_bar(75, 100))
+# Output: [████████████████████████████░░░░░░░░░░] 75%
+```
+
+---
+
+## API Design Principles
+
+### Consistent Patterns
+
+All PyEval functions follow consistent patterns:
+
+```python
+# Pattern 1: Compare y_true vs y_pred
+score = metric(y_true, y_pred)
+
+# Pattern 2: Evaluate single input
+score = metric(text)
+
+# Pattern 3: Evaluate with context
+score = metric(text, context)
+
+# Pattern 4: Return detailed results
+result = metric(y_true, y_pred, detailed=True)
+```
+
+### Return Types
+
+| Return Type | Example | When Used |
+|-------------|---------|-----------|
+| `float` | `0.8571` | Single metric score |
+| `dict` | `{'precision': 0.8, 'recall': 0.7}` | Multiple related scores |
+| `list` | `[0.8, 0.7, 0.9]` | Per-class or per-sample scores |
+
+---
+
+## Common Workflows
+
+### Model Comparison
+
+```python
+from pyeval import accuracy_score, f1_score, matthews_corrcoef
+
+y_true = [1, 0, 1, 1, 0, 1, 0, 0]
+
+models = {
+    'Model A': [1, 0, 0, 1, 0, 1, 1, 0],
+    'Model B': [1, 0, 1, 1, 0, 1, 0, 1],
+    'Model C': [1, 1, 1, 1, 0, 0, 0, 0],
+}
+
+print("Model Comparison")
+print("-" * 40)
+for name, y_pred in models.items():
+    acc = accuracy_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred)
+    mcc = matthews_corrcoef(y_true, y_pred)
+    print(f"{name}: Acc={acc:.4f}, F1={f1:.4f}, MCC={mcc:.4f}")
+```
+
+### Batch Evaluation
+
+```python
+from pyeval import bleu_score
+
+references = [
+    "The cat sat on the mat",
+    "Hello world",
+    "Machine learning is fascinating"
+]
+
+hypotheses = [
+    "A cat was sitting on the mat",
+    "Hello there world",
+    "ML is really interesting"
+]
+
+scores = [bleu_score(ref, hyp) for ref, hyp in zip(references, hypotheses)]
+avg_bleu = sum(scores) / len(scores)
+print(f"Average BLEU: {avg_bleu:.4f}")
 ```
 
 ---
 
 ## Next Steps
 
-- 📊 Explore [ML Metrics](api/ml.md) for classification, regression, and clustering
-- 📝 Learn about [NLP Metrics](api/nlp.md) for text generation
-- 🤖 Discover [LLM Metrics](api/llm.md) for language model evaluation
-- 🔍 Check out [RAG Metrics](api/rag.md) for retrieval-augmented generation
-- ⚖️ Review [Fairness Metrics](api/fairness.md) for bias detection
-- 🎯 See [Advanced Features](advanced/patterns.md) for design patterns and utilities
+- **[API Overview](api/overview.md)** — Quick reference for all 327+ APIs
+- **[ML Examples](examples/ml.md)** — Detailed machine learning examples
+- **[NLP Examples](examples/nlp.md)** — Text evaluation examples
+- **[LLM Examples](examples/llm.md)** — Large language model evaluation
+- **[RAG Examples](examples/rag.md)** — Retrieval-augmented generation
+
+---
+
+## Troubleshooting
+
+### Import Errors
+
+If you encounter import errors, ensure you're using Python 3.12+:
+
+```bash
+python --version  # Should be 3.12 or higher
+```
+
+### Package Conflicts
+
+PyEval has no dependencies, so conflicts are unlikely. If you have issues, try a clean virtual environment:
+
+```bash
+python -m venv pyeval_env
+source pyeval_env/bin/activate  # On Windows: pyeval_env\Scripts\activate
+pip install pyeval
+```
+
+### Getting Help
+
+- **[GitHub Issues](https://github.com/isathish/pyeval/issues)** — Report bugs or request features
+- **[Contributing Guide](contributing.md)** — How to contribute
